@@ -1,0 +1,17 @@
+server:
+  port: 8000
+  faiss_gpu: true
+  topk: 3
+
+retriever:
+  name: qwen3
+  model_path: /scratch/gpfs/ZHUANGL/sk7524/hf/hub/models--Qwen--Qwen3-Embedding-4B/snapshots/5cf2132abc99cad020ac570b19d031efec650f2b
+  pooling_method: last_token
+  query_max_length: 256
+  use_fp16: true
+  task_description: "Given a query about academic research, retrieve relevant arXiv papers that address the topic"
+
+index:
+  path: /home/hk4638/scratch/shared/harish_data/qwen3_4b_embed/qwen3_Flat.index
+  corpus_path: /scratch/gpfs/ZHUANGL/sk7524/SkyRL/skyrl-train/data/searchr1_original/arxiv/arxiv_wikiformat.jsonl
+  arxiv_metadata_path: /scratch/gpfs/ZHUANGL/sk7524/SkyRL/skyrl-train/data/searchr1_original/arxiv/arxiv-metadata-oai-snapshot.jsonl

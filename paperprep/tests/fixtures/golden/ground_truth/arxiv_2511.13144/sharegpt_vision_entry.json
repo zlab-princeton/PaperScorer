@@ -1,0 +1,34 @@
+{
+  "conversations": [
+    {
+      "from": "system",
+      "value": "You are an expert academic reviewer tasked with evaluating research papers."
+    },
+    {
+      "from": "human",
+      "value": "I am giving you a paper submitted to a top machine-learning venue. Predict its acceptance outcome.\n - Your answer will either be: \\boxed{Accept} or \\boxed{Reject}\n - Note: typical top-tier ML venues have ~25-30% acceptance rates\n\n# Personalized Federated Learning with Bidirectional Communication Compression via One-Bit Random Sketching\n\n## Abstract\nFederated Learning (FL) enables collaborative training across decentralized data, but faces key challenges of bidirectional communication overhead and client-side data heterogeneity. To address communication costs while embracing data heterogeneity, we propose pFed1BS, a novel personalized federated learning framework that achieves extreme communication compression through one-bit random sketching. In personalized FL, the goal shifts from training a single global model to creating tailored models for each client. In our framework, clients transmit highly compressed one-bit sketches, and the server aggregates and broadcasts a global one-bit consensus. To enable effective personalization, we introduce a sign-based regularizer that guides local models to align with the global consensus while preserving local data characteristics. To mitigate the computational burden of random sketching, we employ the Fast Hadamard Transform for efficient projection. Theoretical analysis guarantees that our algorithm converges to a stationary neighborhood of the global potential function. Numerical simulations demonstrate that pFed1BS substantially reduces communication costs while achieving competitive performance compared to advanced communication-efficient FL algorithms.\n\n<image> <image> <image> <image> <image> <image> <image>"
+    },
+    {
+      "from": "gpt",
+      "value": "Outcome: \\boxed{Accept}"
+    }
+  ],
+  "_metadata": {
+    "arxiv_id": "2511.13144",
+    "answer": "Accept",
+    "venue": "aaai",
+    "conference_year": 2026,
+    "arxiv_year": 2025,
+    "decision": "accept",
+    "training_label": "accept"
+  },
+  "images": [
+    "page_1.png",
+    "page_2.png",
+    "page_3.png",
+    "page_4.png",
+    "page_5.png",
+    "page_6.png",
+    "page_7.png"
+  ]
+}

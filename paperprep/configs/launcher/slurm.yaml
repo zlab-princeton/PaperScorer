@@ -1,0 +1,10 @@
+defaults:
+  - override /hydra/launcher: submitit_slurm
+
+hydra:
+  launcher:
+    timeout_min: 120
+    cpus_per_task: 4
+    mem_gb: 16
+    partition: all
+    array_parallelism: 80

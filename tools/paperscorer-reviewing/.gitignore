@@ -1,0 +1,17 @@
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+build/
+dist/
+.pytest_cache/
+logs/
+*.log
+.env
+# Per-upload work tree (PDFs, intermediates, sharegpt outputs)
+paperlensreview_work/
+
+# paperprep-serve per-request work tree
+paperprep_serve_work/
+# slurm array job logs
+slurm-*.out

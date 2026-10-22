@@ -1,0 +1,2522 @@
+[
+    {
+        "type": "text",
+        "text": "On the Vulnerability of Backdoor Defenses for Federated Learning",
+        "text_level": 1,
+        "bbox": [
+            163,
+            119,
+            833,
+            141
+        ],
+        "page_idx": 0
+    },
+    {
+        "type": "text",
+        "text": "Anonymous Submission",
+        "bbox": [
+            398,
+            165,
+            599,
+            181
+        ],
+        "page_idx": 0
+    },
+    {
+        "type": "text",
+        "text": "Anonymous Institute",
+        "bbox": [
+            429,
+            191,
+            566,
+            205
+        ],
+        "page_idx": 0
+    },
+    {
+        "type": "text",
+        "text": "Abstract",
+        "text_level": 1,
+        "bbox": [
+            250,
+            273,
+            313,
+            286
+        ],
+        "page_idx": 0
+    },
+    {
+        "type": "text",
+        "text": "Federated Learning (FL) is a popular distributed machine learning paradigm that enables jointly training a global model without sharing clients' data. However, its repetitive server-client communication gives room for backdoor attacks with aim to mislead the global model into a targeted misprediction when a specific trigger pattern is presented. In response to such backdoor threats on federated learning, various defense measures have been proposed. In this paper, we study whether the current defense mechanisms truly neutralize the backdoor threats from federated learning in a practical setting by proposing a new federated backdoor attack method for possible countermeasures. Different from traditional training (on triggered data) and rescaling (the malicious client model) based backdoor injection, the proposed backdoor attack framework (1) directly modifies (a small proportion of) local model weights to inject the backdoor trigger via sign flips; (2) jointly optimize the trigger pattern with the client model, thus is more persistent and stealthy for circumventing existing defenses. In a case study, we examine the strength and weaknesses of recent federated backdoor defenses from three major categories and provide suggestions to the practitioners when training federated models in practice.",
+        "bbox": [
+            102,
+            297,
+            460,
+            574
+        ],
+        "page_idx": 0
+    },
+    {
+        "type": "text",
+        "text": "1 Introduction",
+        "text_level": 1,
+        "bbox": [
+            214,
+            595,
+            349,
+            611
+        ],
+        "page_idx": 0
+    },
+    {
+        "type": "text",
+        "text": "In recent years, Federated Learning (FL) (McMahan et al. 2017; Zhao et al. 2018) prevails as a new distributed machine learning paradigm, where many clients collaboratively train a global model without sharing clients' data. FL techniques have been widely applied to various real-world applications including keyword spotting (Leroy et al. 2019), activity prediction on mobile devices (Hard et al. 2018; Xu et al. 2021), smart sensing on edge devices (Jiang et al. 2020), etc. Despite FL's collaborative training capability, it usually deals with heterogeneous (non-i.i.d.) data distribution among clients and its formulation naturally leads to repetitive synchronization between the server and the clients. This gives room for attacks from potential malicious clients. Particularly, backdoor attack (Gu, Dolan-Gavitt, and Garg 2019), which aims to mislead the model into a targeted misprediction when a specific trigger pattern is presented by stealthy data poisoning, can be easily implemented and",
+        "bbox": [
+            86,
+            616,
+            477,
+            851
+        ],
+        "page_idx": 0
+    },
+    {
+        "type": "text",
+        "text": "hard to detect from the server's perspective. The feasibility of backdoor attacks on plain federated learning has been studied in (Bhagoji et al. 2019; Bagdasaryan et al. 2020; Xie et al. 2019; Zhang* et al. 2022). Such backdoor attacks can be effectively implemented by replacing the global FL model with the attackers' malicious model through carefully scaling model updates with well-designed triggers, and the attacks can successfully evade many different FL setups (McMahan et al. 2017; Yin et al. 2018).",
+        "bbox": [
+            519,
+            273,
+            911,
+            398
+        ],
+        "page_idx": 0
+    },
+    {
+        "type": "text",
+        "text": "The possible backdoor attacks in federated learning arouse a large number of interest on possible defenses that could mitigate the backdoor threats. Based on the different defense mechanisms they adopt, the federated backdoor defenses can be classified into three major categories: model-refinement, robust-aggregation, and certified-robustness. Model-refinement defenses attempt to refine the global model to erase the possible backdoor, through methods such as fine-tuning (Wu et al. 2020) or distillation (Lin et al. 2020; Sturluson et al. 2021). Intuitively, distillation or pruning-based FL can also be more robust to current federated backdoor attacks as recent studies on backdoor defenses (Li et al. 2021; Liu, Dolan-Gavitt, and Garg 2018) have shown that such methods are effective in removing backdoor from general (non-FL) backdoored models. On the other hand, different from FedAvg (McMahan et al. 2017) and its variants (Karimireddy et al. 2020; Li et al. 2020; Wang et al. 2020b) which directly average the participating clients' parameters, the robust-aggregation defenses exclude the malicious (ambiguous) weights and gradients from suspicious clients through anomaly detection, or dynamically re-weight clients' importance based on certain distance metrics (geometric median, etc.). Examples include Krum (Blanchard et al. 2017), Trimmed Mean (Yin et al. 2018), Bulyan (Guerraoui, Rouault et al. 2018) and Robust Learning Rate (Ozdayi, Kantarcioglu, and Gel 2020). Note that some of the robust-aggregation defenses are originally proposed for defending model poisoning attack (Byzantine robustness) yet they may also be used for defending backdoors. The last kind, certified robustness aims at providing certified robustness guarantees that for each test example, i.e., the prediction would not change even some features in local training data of malicious clients have been modified within certain constraint. For example, CRFL (Xie et al. 2021) exploits clipping and smoothing on model parameters, which yields a",
+        "bbox": [
+            519,
+            404,
+            911,
+            888
+        ],
+        "page_idx": 0
+    },
+    {
+        "type": "page_footnote",
+        "text": "Copyright © 2023, Association for the Advancement of Artificial Intelligence (www.aaai.org). All rights reserved.",
+        "bbox": [
+            84,
+            862,
+            477,
+            888
+        ],
+        "page_idx": 0
+    },
+    {
+        "type": "text",
+        "text": "sample-wise robustness certification with magnitude-limited backdoor trigger patterns. Provable FL (Cao, Jia, and Gong 2021) learns multiple global models, each with a random client subset and takes majority voting in prediction, which shows provably secure against malicious clients.",
+        "bbox": [
+            81,
+            68,
+            480,
+            137
+        ],
+        "page_idx": 1
+    },
+    {
+        "type": "text",
+        "text": "Despite all the efforts in backdoor defense in federated learning, there also exist many constraints and limitations for defenses from these three major categories. First, the effectiveness of the model-refinement defenses relies on whether the refinement procedure can fully erase the backdoor. Adversaries may actually exploit this and design robust backdoor patterns that are persistent, stealthy and thus hard to erase. Second, robust aggregation defenses are usually based on i.i.d. assumptions of each participant's training data, which does not hold for the general federated learning scenario where participant's data are usually non-i.i.d. Existing attacks (Bagdasaryan et al. 2020) have shown that in certain cases, such defense techniques make the attack even more effective. Moreover, to effectively reduce the attack success rate of the possible backdoor attacks, one usually needs to enforce stronger robust aggregation rules, which can in turn largely hurt the normal federated training progress. Lastly, certified robustness approaches enjoy theoretical robust guarantees, yet also have quite strong requirements and limitations such as a large amount of model training or a strict limit on the magnitude of the trigger pattern. Also, certified defenses usually lead to relatively worse empirical model performances.",
+        "bbox": [
+            81,
+            138,
+            478,
+            455
+        ],
+        "page_idx": 1
+    },
+    {
+        "type": "text",
+        "text": "To rigorously evaluate current federated backdoor defenses and examine whether the current mechanisms truly neutralize the backdoor threats, we propose a new federated backdoor attack that is more persistent and stealthy for circumventing most existing defenses. Through comprehensive experiments and in-depth case study on several state-of-the-art federated backdoor defenses, we summarize our main contributions and findings as follows:",
+        "bbox": [
+            81,
+            455,
+            480,
+            568
+        ],
+        "page_idx": 1
+    },
+    {
+        "type": "list",
+        "sub_type": "text",
+        "list_items": [
+            "- We propose a more persistent and stealthy backdoor attack for federated learning. Instead of traditional training (on triggered data) and rescaling (malicious client updates) based backdoor injection, our attack selectively flips the signs of a small proportion of model weights and jointly optimizes the trigger pattern with client local training.",
+            "- The proposed attack does not explicitly scale the updated weights (gradients) and can be universally applied to various architectures beyond convolutional neural networks, which is of independent interest to general backdoor attack and defense studies.",
+            "- In a case study, we examine the effectiveness of several recent federated backdoor defenses from three major categories and give practical guidelines for the choice of the backdoor defenses for different settings."
+        ],
+        "bbox": [
+            89,
+            569,
+            478,
+            796
+        ],
+        "page_idx": 1
+    },
+    {
+        "type": "text",
+        "text": "2 Proposed Approach",
+        "text_level": 1,
+        "bbox": [
+            179,
+            806,
+            382,
+            824
+        ],
+        "page_idx": 1
+    },
+    {
+        "type": "text",
+        "text": "Federated Learning Setup Suppose we have  $K$  participating clients, each of which has its own dataset  $\\mathcal{D}_i$  with size  $n_i$  and  $N = \\sum_{i} n_i$ . At the  $t$ -th federated training round, the server sends the current global model  $\\theta_t$  to a randomly-selected subset of  $m$  clients. The clients will then perform",
+        "bbox": [
+            81,
+            824,
+            480,
+            888
+        ],
+        "page_idx": 1
+    },
+    {
+        "type": "text",
+        "text": "$K$  steps of local training to obtain  $\\pmb{\\theta}_t^{i,K}$  based on the global model  $\\pmb{\\theta}_t$ , and send the updates  $\\pmb{\\theta}_t^{i,K} - \\pmb{\\theta}_t$  back to the server. Now the server can aggregate the updates with some specific rules to get a new global model  $\\pmb{\\theta}_{t + 1}$  for the next round. In the standard FedAvg (McMahan et al. 2017) method, the server adopts a sample-weighted aggregation rule to average the  $m$  received updates:",
+        "bbox": [
+            514,
+            66,
+            913,
+            161
+        ],
+        "page_idx": 1
+    },
+    {
+        "type": "equation",
+        "text": "\n$$\n\\boldsymbol {\\theta} _ {t + 1} = \\boldsymbol {\\theta} _ {t} + \\frac {1}{N} \\sum_ {i = 1} ^ {m} n _ {i} \\left(\\boldsymbol {\\theta} _ {t} ^ {i, K} - \\boldsymbol {\\theta} _ {t}\\right) \\tag {2.1}\n$$\n",
+        "text_format": "latex",
+        "bbox": [
+            604,
+            162,
+            911,
+            196
+        ],
+        "page_idx": 1
+    },
+    {
+        "type": "text",
+        "text": "Various variants of FedAvg have also been proposed (Karimireddy et al. 2020; Li et al. 2020; Wang et al. 2020b; Reddi et al. 2020). In this work, we adopt the most commonly used FedAvg (McMahan et al. 2017) method as our standard federated learning baseline.",
+        "bbox": [
+            514,
+            198,
+            913,
+            267
+        ],
+        "page_idx": 1
+    },
+    {
+        "type": "text",
+        "text": "Backdoor Attacks in FL Assume there exists one or several malicious clients with goal to manipulate local updates to inject a backdoor trigger into the global model such that when the trigger pattern appears in the inference stage, the global model would give preset target predictions  $y_{\\text{target}}$ . In the meantime, the malicious clients do not want to tamper with the model's normal prediction accuracy on clean tasks (to keep stealthy). Therefore, the malicious client has the following objectives:",
+        "bbox": [
+            514,
+            267,
+            911,
+            382
+        ],
+        "page_idx": 1
+    },
+    {
+        "type": "equation",
+        "text": "\n$$\n\\begin{array}{l} \\min  _ {\\boldsymbol {\\theta}} \\mathcal {L} _ {\\text {t r a i n}} \\left(\\mathbf {x}, \\mathbf {x} ^ {\\prime}, y _ {\\text {t a r g e t}}, \\boldsymbol {\\theta}\\right) := \\frac {1}{n _ {i}} \\sum_ {k = 1} ^ {n _ {i}} \\ell \\left(f _ {\\boldsymbol {\\theta}} \\left(\\mathbf {x} _ {k}\\right), y _ {k}\\right) \\\\ + \\lambda \\cdot \\ell \\left(f _ {\\boldsymbol {\\theta}} \\left(\\mathbf {x} _ {k} ^ {\\prime}\\right), y _ {\\text {t a r g e t}}\\right) + \\alpha \\cdot \\left| \\left| \\boldsymbol {\\theta} - \\boldsymbol {\\theta} _ {t} \\right| \\right| _ {2} ^ {2}, \\tag {2.2} \\\\ \\end{array}\n$$\n",
+        "text_format": "latex",
+        "bbox": [
+            560,
+            386,
+            911,
+            441
+        ],
+        "page_idx": 1
+    },
+    {
+        "type": "text",
+        "text": "where  $\\mathbf{x}_k' = (1 - \\mathbf{m}) \\odot \\mathbf{x}_k + \\mathbf{m} \\odot \\Delta$  is the backdoored data and  $\\Delta$  denotes the associated trigger pattern,  $\\mathbf{m}$  denotes the trigger location mask, and  $\\odot$  denotes the elementwise product. The first term in (2.2) is the common empirical risk minimization while the second term aims at injecting the backdoor trigger into the model. The third term is usually employed additionally to enhance the attack stealthiness by minimizing the distance to the global model (for bypassing anomaly detection-based defenses). The loss function  $\\ell$  is usually set as the CrossEntropy Loss.  $\\lambda$  and  $\\alpha$  control the trade-off between the three tasks. Most existing backdoor attacks on FL (Bagdasaryan et al. 2020; Bhagoji et al. 2019; Xie et al. 2019) are based on iteratively training triggered data samples over the loss (2.2) or its variants. Then the backdoored local updates will be rescaled in order to have enough influence on the final global model update on the server. Such a process lasts by rounds until the global model reaches a high attack success rate.",
+        "bbox": [
+            514,
+            444,
+            913,
+            691
+        ],
+        "page_idx": 1
+    },
+    {
+        "type": "text",
+        "text": "Threat Model We suppose that the malicious attacker has full control of their local training processes, such as backdoor data injection, trigger pattern, and local optimization. The scenario is practical since the server can only get the trained model from clients without the information on how the model is trained. Correspondingly, the malicious attacker is unable to influence the operations conducted on the central server such as changing the aggregation rules, or tampering with the model updates of other benign clients.",
+        "bbox": [
+            514,
+            693,
+            913,
+            819
+        ],
+        "page_idx": 1
+    },
+    {
+        "type": "text",
+        "text": "2.1 Focused Flip Federated Backdoor Attack",
+        "text_level": 1,
+        "bbox": [
+            514,
+            828,
+            877,
+            844
+        ],
+        "page_idx": 1
+    },
+    {
+        "type": "text",
+        "text": "Most existing backdoor attacks on FL (Bagdasaryan et al. 2020; Bhagoji et al. 2019) are based on training on triggered data and rescaling the malicious updates to inject the",
+        "bbox": [
+            514,
+            845,
+            913,
+            888
+        ],
+        "page_idx": 1
+    },
+    {
+        "type": "text",
+        "text": "backdoor. There are several major downsides: (1) it requires rescaling the updates to dominate the global model update, rendering the updates quite different from other clients and easier to be defended by clipping or anomaly detection; (2) the dominating malicious updates can also significantly impair the prediction performance of the global model, which makes the backdoorsed model less attractive to be adopted. In this section, we propose Focused-Flip Federated Backdoor Attack (F3BA), in which the malicious clients only compromise a small fraction of the least important model parameters through focused weight sign manipulation. The goal of such weight sign manipulation is to cause a strong activation difference in each layer led by the trigger pattern while keeping the modification footprint and influence on model accuracy minimal. A sketch of our proposed attack is illustrated in Figure 1. Let's denote the current global model as  $\\pmb{\\theta}_t^{i,0} \\coloneqq \\{\\mathbf{w}_t^{[1]}, \\mathbf{w}_t^{[2]}, \\dots, \\mathbf{w}_t^{[L]}\\}$  and each layer's output as  $\\mathbf{z}^{[1]}(\\cdot), \\mathbf{z}^{[2]}(\\cdot), \\dots, \\mathbf{z}^{[L]}(\\cdot)$ . Generally, our attack can be divided into three steps:",
+        "bbox": [
+            81,
+            68,
+            478,
+            335
+        ],
+        "page_idx": 2
+    },
+    {
+        "type": "text",
+        "text": "Step 1: Search candidate parameters for manipulation: We only manipulate a small fraction of candidate parameters in the model that are of the least importance to the normal task to make it have a slight impact on the natural accuracy. Specifically, we introduce movement-based importance score to identify candidate parameters for manipulation, which is inspired by the movement pruning (Sanh, Wolf, and Rush 2020). Specifically, the importance of each parameter  $S_{t}^{[j]}$  is related to both its weight and gradient:  $S_{t}^{[j]} = -\\frac{\\partial\\mathcal{L}_{\\mathrm{g}}}{\\partial\\mathbf{w}_{t}^{[j]}}\\odot \\mathbf{w}_{t}^{[j]}$ , where  $\\mathcal{L}_{\\mathrm{g}}$  is the global training loss and  $\\odot$  denotes the elementwise product<sup>1</sup>. We make two major changes on  $S_{t}^{[j]}$  for our federated backdoor attack:",
+        "bbox": [
+            81,
+            337,
+            478,
+            521
+        ],
+        "page_idx": 2
+    },
+    {
+        "type": "list",
+        "sub_type": "text",
+        "list_items": [
+            "- In our federated setting, it is hard to obtain the global loss  $\\mathcal{L}_{\\mathrm{g}}$  since the attack is carried only on the malicious workers. We simply approximate the partial derivative with the model difference  $-\\frac{\\partial\\mathcal{L}_{\\mathrm{g}}}{\\partial\\mathbf{w}_t^{[j]}}\\approx \\mathbf{w}_t^{[j]} - \\mathbf{w}_{t - 1}^{[j]}$ . When  $t = 0$  we simply generate a random importance score $^2$ $\\pmb{S}_0^{[j]}$ ;",
+            "- To handle defense mechanisms with different emphases, we extend it into two importance metrics (Directional Criteria and Directionless Criteria) and choose<sup>3</sup> the one that best exploits the weakness of the defense:"
+        ],
+        "bbox": [
+            89,
+            523,
+            478,
+            662
+        ],
+        "page_idx": 2
+    },
+    {
+        "type": "text",
+        "text": "Directional:  $S_{t}^{[j]} = \\left(\\mathbf{w}_{t}^{[j]} - \\mathbf{w}_{t - 1}^{[j]}\\right)\\odot \\mathbf{w}_{t}^{[j]},$  (2.3)",
+        "bbox": [
+            130,
+            669,
+            477,
+            688
+        ],
+        "page_idx": 2
+    },
+    {
+        "type": "text",
+        "text": "Directionless:  $S_{t}^{[j]} = \\left|\\left(\\mathbf{w}_{t}^{[j]} - \\mathbf{w}_{t - 1}^{[j]}\\right)\\odot \\mathbf{w}_{t}^{[j]}\\right|$  (2.4)",
+        "bbox": [
+            130,
+            691,
+            477,
+            712
+        ],
+        "page_idx": 2
+    },
+    {
+        "type": "text",
+        "text": "Given the importance score  $\\dot{S}_t^{[j]}$ , we choose the least important parameters in each layer as candidate parameters. We define  $\\mathbf{m}_s^{[j]}$  as a mask that selects the  $s\\%$  lowest scores in  $S_t^{[j]}$  and ignore the others. In practice, setting  $s = 1\\%$  for the model parameters is usually sufficient for our attack.",
+        "bbox": [
+            81,
+            710,
+            478,
+            787
+        ],
+        "page_idx": 2
+    },
+    {
+        "type": "text",
+        "text": "Step 2: Flip the sign of candidate parameters: Our next goal is to manipulate the parameters to enhance their sensitivity to the trigger by flipping their signs. Take the simple CNN model as an example<sup>4</sup>. We start flipping from the first convolutional layer. For a trigger pattern<sup>5</sup>  $\\Delta$ , to maximize the activation in the next layer, we flip  $\\mathbf{w}^{[1]}$ 's signs if they are different from the trigger's signs in the same position:",
+        "bbox": [
+            514,
+            68,
+            911,
+            165
+        ],
+        "page_idx": 2
+    },
+    {
+        "type": "equation",
+        "text": "\n$$\n\\mathbf {w} ^ {[ 1 ]} = \\mathbf {m} _ {s} ^ {[ 1 ]} \\odot \\operatorname {s i g n} (\\Delta) \\odot | \\mathbf {w} ^ {[ 1 ]} | + \\left(\\mathbf {1} - \\mathbf {m} _ {s} ^ {[ 1 ]}\\right) \\odot \\mathbf {w} ^ {[ 1 ]}, \\tag {2.5}\n$$\n",
+        "text_format": "latex",
+        "bbox": [
+            529,
+            172,
+            911,
+            191
+        ],
+        "page_idx": 2
+    },
+    {
+        "type": "text",
+        "text": "where  $\\mathbf{m}_s^{[1]}$  is the candidate parameter mask generated in Step 1. Through (2.5), the activation in the next layer is indeed enlarged when the trigger pattern is present. For the subsequent layers, we flip the signs of the candidate parameters similarly. The only difference is that after the sign-flip in the previous layer  $j - 1$ , we feed a small set of validation samples  $\\mathbf{x}_v$  and compute the activation difference of layer  $j - 1$  caused by adding the trigger pattern  $\\pmb{\\Delta}$  on  $\\mathbf{x}_v$ :",
+        "bbox": [
+            514,
+            202,
+            911,
+            316
+        ],
+        "page_idx": 2
+    },
+    {
+        "type": "equation",
+        "text": "\n$$\n\\boldsymbol {\\delta} = \\sigma (\\mathbf {z} ^ {[ j - 1 ]} (\\mathbf {x} _ {v} ^ {\\prime})) - \\sigma (\\mathbf {z} ^ {[ j - 1 ]} (\\mathbf {x} _ {v})),\n$$\n",
+        "text_format": "latex",
+        "bbox": [
+            596,
+            324,
+            841,
+            343
+        ],
+        "page_idx": 2
+    },
+    {
+        "type": "equation",
+        "text": "\n$$\n\\text {w h e r e} \\mathbf {x} _ {v} ^ {\\prime} = (1 - \\mathbf {m}) \\odot \\mathbf {x} _ {v} + \\mathbf {m} \\odot \\Delta \\tag {2.6}\n$$\n",
+        "text_format": "latex",
+        "bbox": [
+            589,
+            345,
+            911,
+            362
+        ],
+        "page_idx": 2
+    },
+    {
+        "type": "text",
+        "text": "$\\sigma (\\cdot)$  is the activation function for the network (e.g. ReLU function) and  $\\mathbf{x}_v^{\\prime}$  is the backdoor triggered validation samples. Similarly, we can flip the signs of the candidate parameters to maximize  $\\delta$ . This ensures that the last layer's activation is also maximized when the trigger pattern is presented.",
+        "bbox": [
+            514,
+            369,
+            911,
+            440
+        ],
+        "page_idx": 2
+    },
+    {
+        "type": "text",
+        "text": "Step 3: Model training: Although we have maximized the network's activation for the backdoor trigger in Step 2, the local model training step is still necessary due to: 1) the flipped parameters only maximize the activation but have not associated with the target label  $y_{\\text{target}}$ , and the training step using (2.2) would bind the trigger to the target label; 2) only flipping the signs of the parameter will lead to a quite different model update compared with other benign clients and a further training step will largely mitigate this issue. Note that since the flipped candidate parameters are the least important to the normal task, our flipping operations will not be largely affected by the later model training step, and thus the resulting trigger injection is expected to be more persistent.",
+        "bbox": [
+            514,
+            440,
+            911,
+            619
+        ],
+        "page_idx": 2
+    },
+    {
+        "type": "text",
+        "text": "Generally, Focused Flip greatly boosts training-based backdoor attacks, whereas its time overhead is negligible as the flipping operation does not require backpropagation.",
+        "bbox": [
+            514,
+            619,
+            911,
+            662
+        ],
+        "page_idx": 2
+    },
+    {
+        "type": "text",
+        "text": "2.2 Extensions to Other Network Architectures",
+        "text_level": 1,
+        "bbox": [
+            514,
+            674,
+            892,
+            689
+        ],
+        "page_idx": 2
+    },
+    {
+        "type": "text",
+        "text": "The flip operation can be similarly extended to other network architectures as the candidate weights selection (Step 1) and the model training (Step 3) are not relevant to the model architecture at all. Therefore, we only need to adapt the sign flipping part (Step 2). For CNN, we resize the trigger and flip the sign of the candidate parameters to maximize the convolution layer's activation. The same strategy applies for any dot product based operation (convolution can be seen as a special dot product). Take MLP as an example, assume the first layer's weight is  $\\mathbf{w}^{[1]}$ . We flip these weights' signs",
+        "bbox": [
+            514,
+            694,
+            911,
+            835
+        ],
+        "page_idx": 2
+    },
+    {
+        "type": "page_footnote",
+        "text": "<sup>1</sup>More explanations regarding this movement-based importance score can be found in the Appendix.",
+        "bbox": [
+            81,
+            796,
+            478,
+            823
+        ],
+        "page_idx": 2
+    },
+    {
+        "type": "page_footnote",
+        "text": "In practice, since only a subset of clients participate in the training, the malicious client keeps its last received global model until it is chosen for training and compute the model difference.",
+        "bbox": [
+            81,
+            823,
+            478,
+            862
+        ],
+        "page_idx": 2
+    },
+    {
+        "type": "page_footnote",
+        "text": "<sup>3</sup>A detailed discussion on how to choose the appropriate criteria can be found in the Appendix.",
+        "bbox": [
+            81,
+            861,
+            478,
+            888
+        ],
+        "page_idx": 2
+    },
+    {
+        "type": "page_footnote",
+        "text": "4It applies to fully connected layers with simple modifications. 5If the size of the trigger is not aligned with  $\\mathbf{w}^{[1]}$  , we simply resize it into the same size as  $\\mathbf{w}^{[1]}$",
+        "bbox": [
+            514,
+            845,
+            911,
+            887
+        ],
+        "page_idx": 2
+    },
+    {
+        "type": "image",
+        "img_path": "images/91c9d6484731dcdf153eddf77bde159eac6e1997305717177313ea25719ad08b.jpg",
+        "image_caption": [
+            "Figure 1: A sketch of our proposed Focused Flip Federated Backdoor Attack."
+        ],
+        "image_footnote": [],
+        "bbox": [
+            94,
+            70,
+            254,
+            210
+        ],
+        "page_idx": 3
+    },
+    {
+        "type": "image",
+        "img_path": "images/91535feee0dfeca880e46c75e357c1429cabfd9dc6a77d0f0402abe772b669e2.jpg",
+        "image_caption": [],
+        "image_footnote": [],
+        "bbox": [
+            264,
+            70,
+            478,
+            214
+        ],
+        "page_idx": 3
+    },
+    {
+        "type": "image",
+        "img_path": "images/bbc0d8f552d69b4e93eb5b2aae743271545556ded9ed1ed1dd24b8614a0e0377.jpg",
+        "image_caption": [],
+        "image_footnote": [],
+        "bbox": [
+            480,
+            70,
+            732,
+            210
+        ],
+        "page_idx": 3
+    },
+    {
+        "type": "image",
+        "img_path": "images/de61f5987a114fe32358f4cf39360b285e3c7f92459271ffab802451ea388601.jpg",
+        "image_caption": [],
+        "image_footnote": [],
+        "bbox": [
+            738,
+            70,
+            898,
+            210
+        ],
+        "page_idx": 3
+    },
+    {
+        "type": "text",
+        "text": "by  $\\mathbf{w}^{[1]} = \\mathbf{m}_s^{[1]}\\odot$  sign  $(\\mathbf{x}_{\\mathrm{in}}^{\\prime} - \\mathbf{x}_{\\mathrm{in}})\\odot |\\mathbf{w}^{[1]}| + (1 - \\mathbf{m}_s^{[1]})\\odot \\mathbf{w}^{[1]}$ $(\\mathbf{x}_{\\mathrm{in}}^{\\prime}$  and  $\\mathbf{x}_{\\mathrm{in}}$  is the flatten input sample with and without trigger, and the non-zero elements of  $\\mathbf{x}_{\\mathrm{in}}^{\\prime} - \\mathbf{x}_{\\mathrm{in}}$  only take place on pixels with the trigger.) The Equation is similar to Equation 2.5 except that we do not need to resize the trigger as in CNN. The sign flipping of the rest layers follows the same.",
+        "bbox": [
+            81,
+            243,
+            478,
+            330
+        ],
+        "page_idx": 3
+    },
+    {
+        "type": "text",
+        "text": "2.3 Optimize the Trigger Pattern",
+        "text_level": 1,
+        "bbox": [
+            83,
+            340,
+            349,
+            357
+        ],
+        "page_idx": 3
+    },
+    {
+        "type": "text",
+        "text": "To further improve the effectiveness of F3BA, we equip the attack with trigger pattern optimization $^6$ , i.e., instead of fixing the trigger, we optimize the trigger to fit our attack.",
+        "bbox": [
+            81,
+            359,
+            478,
+            400
+        ],
+        "page_idx": 3
+    },
+    {
+        "type": "text",
+        "text": "Specifically, trigger optimization happens in the middle of Step 2 and repeats for  $P$  iterations: in each iteration, we first conduct the same focused-flip procedure for  $\\mathbf{w}^{[1]}$ . Then we draw batches of training data  $\\mathbf{x}_p$  and generate the corresponding triggered data  $\\mathbf{x}_p'$  using the current trigger  $\\Delta$ . We feed both the clean samples  $\\mathbf{x}_p$  and the triggered samples  $\\mathbf{x}_p'$  to the first layer and design the trigger optimization loss to maximize the activation difference:",
+        "bbox": [
+            81,
+            401,
+            478,
+            511
+        ],
+        "page_idx": 3
+    },
+    {
+        "type": "equation",
+        "text": "\n$$\n\\max  _ {\\boldsymbol {\\Delta}} \\mathcal {L} _ {\\operatorname {t r i g}} \\left(\\mathbf {x} _ {p}, \\boldsymbol {\\Delta}\\right) := \\| \\sigma \\left(\\mathbf {z} ^ {[ 1 ]} \\left(\\mathbf {x} _ {p}\\right) - \\sigma \\left(\\mathbf {z} ^ {[ 1 ]} \\left(\\mathbf {x} _ {p} ^ {\\prime}\\right)\\right) \\right\\| _ {2} ^ {2}, \\tag {2.7}\n$$\n",
+        "text_format": "latex",
+        "bbox": [
+            109,
+            515,
+            477,
+            537
+        ],
+        "page_idx": 3
+    },
+    {
+        "type": "equation",
+        "text": "\n$$\nw h e r e \\mathbf {x} _ {p} ^ {\\prime} = (1 - \\mathbf {m}) \\odot \\mathbf {x} _ {p} + \\mathbf {m} \\odot \\boldsymbol {\\Delta}.\n$$\n",
+        "text_format": "latex",
+        "bbox": [
+            114,
+            540,
+            349,
+            556
+        ],
+        "page_idx": 3
+    },
+    {
+        "type": "text",
+        "text": "In practice, we optimize  $\\mathcal{L}_{\\mathrm{trig}}$  via simple gradient ascent. It is noteworthy that since the pattern  $\\pmb{\\Delta}$  is being optimized in each iteration, we need to re-flip the candidate parameters in  $\\mathbf{w}^{[1]}$  to follow such changes. The remaining steps for flipping the following layers are the same as before.",
+        "bbox": [
+            81,
+            561,
+            480,
+            633
+        ],
+        "page_idx": 3
+    },
+    {
+        "type": "text",
+        "text": "3 Evaluating the Robustness of State-of-the-Art Federated Backdoor Defenses",
+        "text_level": 1,
+        "bbox": [
+            138,
+            645,
+            452,
+            695
+        ],
+        "page_idx": 3
+    },
+    {
+        "type": "text",
+        "text": "We evaluate F3BA with trigger optimization on several state-of-the-art federated backdoor defenses (3 model-refinement defenses, 3 robust-aggregation defenses, and 1 certified defense) and compare with the distributed backdoor attack (DBA) (Xie et al. 2019) and Neurotoxin (Zhang* et al. 2022). We test on CIFAR-10 (Krizhevsky and Hinton 2009) and Tiny-ImageNet (Le and Yang 2015) with a plain CNN and Resnet-18 model respectively under the non-i.i.d. data distributions. The performances of the federated backdoor attacks is measured by two metrics: Attack Success Rate (ASR), i.e., the proportion of the triggered samples classified",
+        "bbox": [
+            81,
+            699,
+            478,
+            853
+        ],
+        "page_idx": 3
+    },
+    {
+        "type": "text",
+        "text": "as target labels and Natural Accuracy (ACC), i.e., prediction accuracy on the natural clean examples. We test the global model after each round of aggregation: we use the clean test dataset to evaluate ACC, average all the optimized triggers as a global trigger and attached it to the test dataset for ASR evaluation.. To show the impact of backdoor attacks on the model performances, we first list the clean ACC of these defenses (without any attacks) in Table 1.",
+        "bbox": [
+            514,
+            246,
+            913,
+            357
+        ],
+        "page_idx": 3
+    },
+    {
+        "type": "table",
+        "img_path": "images/3116735c6484183ce1dec3dbc18b563fdf80250a773ce9b985998a37ab907ccb.jpg",
+        "table_caption": [],
+        "table_footnote": [],
+        "table_body": "<table><tr><td></td><td>FedAvg</td><td>FedDF</td><td>FedRAD</td><td>FedMV</td><td>Bulyan</td><td>Robust LR</td><td>DeepSight</td></tr><tr><td>CIFAR-10</td><td>71.70%</td><td>70.03%</td><td>68.55%</td><td>63.28%</td><td>61.01%</td><td>65.57%</td><td>64.32%</td></tr><tr><td>TinyImagenet</td><td>37.80%</td><td>37.03%</td><td>35.89%</td><td>32.06%</td><td>28.90%</td><td>33.15%</td><td>31.08%</td></tr></table>",
+        "bbox": [
+            519,
+            361,
+            913,
+            402
+        ],
+        "page_idx": 3
+    },
+    {
+        "type": "text",
+        "text": "Table 1: The ACC of defense baselines without backdoor attacks.",
+        "bbox": [
+            519,
+            406,
+            906,
+            419
+        ],
+        "page_idx": 3
+    },
+    {
+        "type": "text",
+        "text": "Attack Settings Our goal is to accurately evaluate the robustness of the current backdoor defense capabilities. We believe that the attack setting adopted in DBA where a certain number of malicious clients is guaranteed to be selected for the global training in each round, is not realistic. Instead, we randomly pick a certain number of clients (benign or malicious)  $^7$ . For more details, we set the non i.i.d. data with the concentration parameter  $h = 1.0$  and the total number of clients  $c$  is 20 with 4 malicious clients. Each selected client in F3BA locally trains two epochs as benign clients before proposing the model to the server. For F3BA, we choose the directional criteria by default unless specified.",
+        "bbox": [
+            514,
+            426,
+            913,
+            593
+        ],
+        "page_idx": 3
+    },
+    {
+        "type": "text",
+        "text": "3.1 Attacking Model-Refinement Defenses",
+        "text_level": 1,
+        "bbox": [
+            514,
+            603,
+            854,
+            619
+        ],
+        "page_idx": 3
+    },
+    {
+        "type": "text",
+        "text": "FedDF (Lin et al. 2020) performs ensemble distillation on the server side for model fusion, i.e. distill the next round global model using the outputs of all the clients' models on the unlabeled data. Specifically, FedDF ensembles all the client models  $\\theta_t^{i,K}$  together as the teacher model, and use it to distill the next round global model:",
+        "bbox": [
+            514,
+            619,
+            911,
+            700
+        ],
+        "page_idx": 3
+    },
+    {
+        "type": "equation",
+        "text": "\n$$\n\\boldsymbol {\\theta} _ {t + 1} = \\boldsymbol {\\theta} _ {t} - \\eta \\nabla_ {\\boldsymbol {\\theta}} \\mathrm {K L} \\left(\\sigma \\left(\\mathbf {y} _ {\\text {e n s e m b l e d}}\\right), \\sigma \\left(f _ {\\boldsymbol {\\theta} _ {t}} \\left(\\mathbf {x} _ {\\text {u n l a b e l e d}}\\right)\\right)\\right), \\tag {3.1}\n$$\n",
+        "text_format": "latex",
+        "bbox": [
+            534,
+            703,
+            911,
+            718
+        ],
+        "page_idx": 3
+    },
+    {
+        "type": "equation",
+        "text": "\n$$\n\\text {w h e r e} \\mathbf {y} _ {\\text {e n s e m b l e d}} = \\frac {1}{m} \\sum_ {i \\in [ m ]} f _ {\\boldsymbol {\\theta} _ {t} ^ {i}, K} (\\mathbf {x} _ {\\text {u n l a b e l e d}})\n$$\n",
+        "text_format": "latex",
+        "bbox": [
+            534,
+            720,
+            795,
+            753
+        ],
+        "page_idx": 3
+    },
+    {
+        "type": "text",
+        "text": "Here KL stands for Kullback Leibler divergence,  $\\sigma$  is the softmax function, and  $\\eta$  is the stepsize. FedDF is regarded as a backdoor defense as recent studies (Li et al. 2021) have shown that distillation is effective in removing backdoor from general (non-FL) backdoored models.",
+        "bbox": [
+            514,
+            755,
+            913,
+            824
+        ],
+        "page_idx": 3
+    },
+    {
+        "type": "text",
+        "text": "FedRAD (Sturluson et al. 2021) extends FedDF by giving each client a median-based score  $s_i$ , which measures the frequency that the client output logits become the median for",
+        "bbox": [
+            514,
+            824,
+            913,
+            867
+        ],
+        "page_idx": 3
+    },
+    {
+        "type": "page_footnote",
+        "text": "The detailed algorithm for trigger optimization can be found in the Appendix.",
+        "bbox": [
+            81,
+            861,
+            480,
+            888
+        ],
+        "page_idx": 3
+    },
+    {
+        "type": "page_footnote",
+        "text": "The detailed discussion can be found in the appendix.",
+        "bbox": [
+            537,
+            873,
+            862,
+            888
+        ],
+        "page_idx": 3
+    },
+    {
+        "type": "text",
+        "text": "class predictions. FedRAD normalizes the score to a weight  $s_i / \\sum_{i=1}^{K}(s_i)$  and use the weight for model aggregation:",
+        "bbox": [
+            83,
+            68,
+            480,
+            99
+        ],
+        "page_idx": 4
+    },
+    {
+        "type": "equation",
+        "text": "\n$$\n\\boldsymbol {\\theta} _ {t + 1} = \\boldsymbol {\\theta} _ {t} + \\frac {1}{\\sum_ {i = 1} ^ {K} \\left(n _ {i} s _ {i}\\right)} \\sum_ {i = 1} ^ {m} n _ {i} s _ {i} \\left(\\boldsymbol {\\theta} _ {t} ^ {i, K} - \\boldsymbol {\\theta} _ {t}\\right). \\tag {3.2}\n$$\n",
+        "text_format": "latex",
+        "bbox": [
+            119,
+            102,
+            478,
+            137
+        ],
+        "page_idx": 4
+    },
+    {
+        "type": "text",
+        "text": "The distillation part is similar to FedDF. The intuition of FedRAD comes from the median-counting histograms for prediction from the MNIST dataset, where the malicious clients' prediction logits are less often selected as the median. This suggests that the pseudo-labels constructed by median logits will be less affected by malicious clients.",
+        "bbox": [
+            81,
+            141,
+            478,
+            224
+        ],
+        "page_idx": 4
+    },
+    {
+        "type": "text",
+        "text": "FedMV Pruning (Wu et al. 2020) is a distributed pruning scheme to mitigate backdoor attacks in FL, where each client provides a ranking of all filters in the last convolutional layer based on their averaged activation values on local test samples. The server averages the received rankings, and prunes the filters in the last convolutional layer of the global model with larger averaged rankings. Besides, FedMV Pruning erases the outlier weights (far from the average parameter weight) after every few rounds.",
+        "bbox": [
+            81,
+            224,
+            480,
+            349
+        ],
+        "page_idx": 4
+    },
+    {
+        "type": "image",
+        "img_path": "images/b11c36f62bd12beea5841c5b1cf9aa29705ba46d7a911a3132da9ac515772de6.jpg",
+        "image_caption": [
+            "Figure 2: ASR/ACC of F3BA, DBA, and Neurotoxin against Model-Refinement Defenses."
+        ],
+        "image_footnote": [],
+        "bbox": [
+            117,
+            356,
+            436,
+            694
+        ],
+        "page_idx": 4
+    },
+    {
+        "type": "text",
+        "text": "Results: From Figure 2, the three attacks penetrate all the three model refinement defenses on the CIFAR-10 dataset with closed ACC. While on the Tiny-ImageNet dataset, both DBA's and Neurotoxin's ASR soon decreases as the training proceeds, suggesting the benign updates eventually overpower the malicious ones and dominate in global model updates. F3BA still evades all three defenses with higher accuracy. Standalone from ensemble distillation, FedMV pruning causes sudden ACC loss in some rounds due to setting some weights with large magnitudes to zero, and these weights can be important to the main task.",
+        "bbox": [
+            81,
+            734,
+            480,
+            888
+        ],
+        "page_idx": 4
+    },
+    {
+        "type": "text",
+        "text": "Discussion: From our results, the current model-refinement defenses cannot truly neutralize the backdoor threat from malicious clients. FedDF and FedRAD are designed to overcome data drift, yet their enhanced model robustness cannot fully erase the backdoor from F3BA. On the other hand, FedMV pruning cannot precisely target the parameters important for backdoor, and thus damage the performance of the main task when prune the chosen parameters.",
+        "bbox": [
+            514,
+            68,
+            913,
+            181
+        ],
+        "page_idx": 4
+    },
+    {
+        "type": "text",
+        "text": "3.2 Attacking Robust-Aggregation Defenses",
+        "text_level": 1,
+        "bbox": [
+            516,
+            190,
+            867,
+            205
+        ],
+        "page_idx": 4
+    },
+    {
+        "type": "text",
+        "text": "Bulyan (Guerraoui, Rouault et al. 2018) is a strong Byzantine-resilient robust aggregation algorithm originally designed for model poisoning attacks. It works by ensuring that each coordinate is agreed on by a majority of vectors selected by a Byzantine resilient aggregation rule. It requires that for each aggregation, the total number of clients  $n$  satisfy  $n \\geq 4f + 3$ ,  $f$  is the number of malicious clients.",
+        "bbox": [
+            514,
+            208,
+            911,
+            305
+        ],
+        "page_idx": 4
+    },
+    {
+        "type": "text",
+        "text": "To efficiently evade Bulyan, we replace directional criterion (eq. (2.3)) with directionless criteria (eq. (2.4)) to find candidate parameters with small magnitudes and updates<sup>8</sup>",
+        "bbox": [
+            514,
+            305,
+            911,
+            347
+        ],
+        "page_idx": 4
+    },
+    {
+        "type": "text",
+        "text": "Robust LR (Ozdayi, Kantarcioglu, and Gel 2020) works by adjusting the servers' learning rate based on the sign of clients' updates: it requires a sufficient number of votes on the signs of the updates for each dimension to move towards a particular direction. Specifically, if the sum of signs of updates of dimension  $k$  is fewer than a pre-defined threshold  $\\beta$ , the learning rate  $\\eta_{\\beta}[k]$  at dimension  $k$  is multiplied by  $-1$ :",
+        "bbox": [
+            514,
+            347,
+            913,
+            444
+        ],
+        "page_idx": 4
+    },
+    {
+        "type": "equation",
+        "text": "\n$$\n\\eta_ {\\beta} [ k ] = \\left\\{ \\begin{array}{l l} \\eta , & \\left| \\sum_ {i \\in [ m ]} \\operatorname {s g n} \\left(\\boldsymbol {\\theta} _ {t} ^ {i, K} [ k ] - \\boldsymbol {\\theta} _ {t} [ k ]\\right) \\right| \\geq \\beta \\\\ - \\eta , & \\text {e l s e} \\end{array} \\right. \\tag {3.3}\n$$\n",
+        "text_format": "latex",
+        "bbox": [
+            537,
+            444,
+            911,
+            478
+        ],
+        "page_idx": 4
+    },
+    {
+        "type": "text",
+        "text": "Therefore, for dimensions where the sum of signs is below the threshold, Robust LR attempts to maximize the loss. For other dimensions, it tries to minimize the loss as usual.",
+        "bbox": [
+            514,
+            479,
+            911,
+            518
+        ],
+        "page_idx": 4
+    },
+    {
+        "type": "text",
+        "text": "DeepSight (Rieger et al. 2022) aims to filter malicious clients (clusters) and mitigate the backdoor threats: it clusters all clients with different metrics and removes the cluster in which the clients identified as malicious exceeds a threshold. Specifically, 1) it inspects the output probabilities of each local model on given random inputs  $\\mathbf{x}_{\\mathrm{rand}}$  to decide whether its training samples concentrate on a particular class (likely backdoors); 2) it applies DBSCAN (Ester et al. 1996) to cluster clients and excludes the client cluster if the number of potentially malicious clients within exceeds a threshold.",
+        "bbox": [
+            514,
+            520,
+            911,
+            657
+        ],
+        "page_idx": 4
+    },
+    {
+        "type": "text",
+        "text": "Results: As Figure 3, Bulyan's iterative exclusion of anomaly updates largely undermines the evasion of F3BA. By increasing the weight of model-difference-based loss term and applying directionless criteria when flipping parameters, F3BA boosts its stealthiness and achieves high ASR. As for Robust LR, F3BA exploits the restriction of its voting mechanism and easily hacks into it. DeepSight can not defend F3BA under the extremely non-i.i.d data distribution either. In comparison, DBA and Neurotoxin fail on Tiny-Imagenet dataset under all three defenses while maintaining the experiment setting of client numbers and data heterogeneity.",
+        "bbox": [
+            514,
+            657,
+            913,
+            824
+        ],
+        "page_idx": 4
+    },
+    {
+        "type": "text",
+        "text": "Discussion: Overall, we consider Bulyan as a strong defense as F3BA needs to adopt the directionless metric<sup>9</sup> to",
+        "bbox": [
+            516,
+            824,
+            911,
+            852
+        ],
+        "page_idx": 4
+    },
+    {
+        "type": "page_footnote",
+        "text": "The reason of this choice are discussed in the Appendix.",
+        "bbox": [
+            535,
+            859,
+            877,
+            875
+        ],
+        "page_idx": 4
+    },
+    {
+        "type": "page_footnote",
+        "text": "9 More details on selection metrics are in the Appendix.",
+        "bbox": [
+            537,
+            875,
+            864,
+            888
+        ],
+        "page_idx": 4
+    },
+    {
+        "type": "text",
+        "text": "fully penetrate the defense on both datasets. What's more, it takes more rounds for F3BA (with directionless metric) to break Bulyan compared with other defenses. One downside is that Bulyan assumes that the server knows the number of malicious clients  $f$  among  $n$  total clients and it satisfies  $n \\geq 4f + 3$ . Without such prior knowledge, one can only guess the true  $f$ . For a comprehensive study, we adjust the number of the actual malicious clients from 2 to 8 while keeping the server assume there are at most  $10$  4 malicious clients. As shown in Table 2, Bulyan indeed protects the FL training when the number of malicious clients is less than 4. When the number reaches and goes beyond this cap, Bulyan fails to protect the model as the ASR soars, along with a huge loss of ACC as it frequently excludes benign local updates in each round.",
+        "bbox": [
+            81,
+            68,
+            480,
+            275
+        ],
+        "page_idx": 5
+    },
+    {
+        "type": "image",
+        "img_path": "images/179c194132bd3c77b7b4da6c482fd419d18944a97635765358f60526d779899c.jpg",
+        "image_caption": [
+            "Figure 3: ASR/ACC of F3BA, DBA, and Neurotoxin against Robust Aggregation Defenses."
+        ],
+        "image_footnote": [],
+        "bbox": [
+            117,
+            282,
+            433,
+            621
+        ],
+        "page_idx": 5
+    },
+    {
+        "type": "text",
+        "text": "Robust LR reverses the updates of dimensions that are possibly compromised by the malicious clients. To understand why F3BA easily breaks Robust LR, we track the proportion of the reversed dimensions during model training in Figure 4. We observe that F3BA's majority voting result does not differ much from that of plain FedAvg while DBA's reversed dimension is much more than FedAvg. This is easy to understand since F3BA flips a very small fraction of the least important parameters (thus it would not largely change the voting outcome). The performance of DeepSight largely depends on the clustering result while in the non-i.i.d case such result is unstable, and thus its defense mechanism easily fails and reduces to plain FedAvg.",
+        "bbox": [
+            81,
+            667,
+            478,
+            848
+        ],
+        "page_idx": 5
+    },
+    {
+        "type": "text",
+        "text": "3.3 Attacking Certified-robustness",
+        "text_level": 1,
+        "bbox": [
+            516,
+            68,
+            797,
+            83
+        ],
+        "page_idx": 5
+    },
+    {
+        "type": "text",
+        "text": "CRFL (Xie et al. 2021) gives each sample a certificated radius RAD that the prediction would not change if (part of) local training data is modified with backdoor magnitude  $||\\Delta || < \\mathrm{RAD}$ . It provides robustness guarantee through clipping and perturbing in training and parameter-smoothed in testing. During training, the server clips the model parameters, then add isotropic Gaussian noise  $\\epsilon \\sim \\mathcal{N}(0,\\sigma^2\\mathbf{I})$  for parameter smoothing. In testing, CRFL samples  $M$  Gaussian noise from the same distribution independently, adds to the tested model, and uses majority voting for prediction.",
+        "bbox": [
+            514,
+            87,
+            913,
+            227
+        ],
+        "page_idx": 5
+    },
+    {
+        "type": "table",
+        "img_path": "images/157c81c3290ba8a5e8334f344c186133cbb09e9eac0afa13f0a48aed5c762f81.jpg",
+        "table_caption": [],
+        "table_footnote": [],
+        "table_body": "<table><tr><td rowspan=\"2\">#Clients(f/n)</td><td rowspan=\"2\">Rounds</td><td colspan=\"2\">CIFAR-10</td><td colspan=\"2\">Tiny-Imagenet</td></tr><tr><td>ACC</td><td>ASR</td><td>ACC</td><td>ASR</td></tr><tr><td rowspan=\"2\">2/20</td><td>50</td><td>69.56%</td><td>9.97%</td><td>19.64%</td><td>1.12%</td></tr><tr><td>100</td><td>66.30%</td><td>10.36%</td><td>26.31%</td><td>9.98%</td></tr><tr><td rowspan=\"2\">4/20</td><td>50</td><td>57.25%</td><td>37.18%</td><td>17.30%</td><td>39.80%</td></tr><tr><td>100</td><td>63.33%</td><td>61.20%</td><td>25.74%</td><td>92.51%</td></tr><tr><td rowspan=\"2\">6/20</td><td>50</td><td>55.02%</td><td>16.70%</td><td>15.72%</td><td>99.64%</td></tr><tr><td>100</td><td>61.02%</td><td>80.87%</td><td>22.66%</td><td>99.98%</td></tr><tr><td rowspan=\"2\">8/20</td><td>50</td><td>51.73%</td><td>99.32%</td><td>10.89%</td><td>100%</td></tr><tr><td>100</td><td>56.76%</td><td>88.89%</td><td>18.96%</td><td>100%</td></tr></table>",
+        "bbox": [
+            540,
+            241,
+            890,
+            382
+        ],
+        "page_idx": 5
+    },
+    {
+        "type": "text",
+        "text": "Table 2: ASR and ACC of F3BA against Bulyan with different number of malicious clients  $f$  .",
+        "bbox": [
+            516,
+            392,
+            911,
+            419
+        ],
+        "page_idx": 5
+    },
+    {
+        "type": "image",
+        "img_path": "images/1794df64b0380c8a02216d9d67d32a68ae1cf044516f80f25521b20e3995f64b.jpg",
+        "image_caption": [
+            "Figure 4: The proportion of reversed coordinates for Robust LR."
+        ],
+        "image_footnote": [],
+        "bbox": [
+            617,
+            434,
+            803,
+            553
+        ],
+        "page_idx": 5
+    },
+    {
+        "type": "text",
+        "text": "We do not test another ensemble-based certified defense (Cao, Jia, and Gong 2021) since its proposed sample-wise certified security requires hundreds of subsampled models trained from the combinations of proposed local models, which is computationally challenging in practical use.",
+        "bbox": [
+            514,
+            582,
+            911,
+            651
+        ],
+        "page_idx": 5
+    },
+    {
+        "type": "text",
+        "text": "Results: To test the defense performance of CRFL, we adjust the variance  $\\sigma$  for CRFL and test with backdoor attacks. Figure 5 shows that using the same level of noise  $\\sigma = 0.001$ , F3BA reaches the ASR of nearly  $100\\%$  while DBA and Neurotoxin fail on Tiny-Imagenet. If we further increase variance to provide larger RAD for F3BA that completely covers the norm of the trigger in each round as in Figure 6, CRFL can defend the F3BA yet with a huge sacrifice on accuracy.",
+        "bbox": [
+            514,
+            652,
+            913,
+            762
+        ],
+        "page_idx": 5
+    },
+    {
+        "type": "text",
+        "text": "Discussion: CRFL provides quantifiable assurance of robustness against backdoor attacks, i.e., a sample-specific robustness radius (RAD). However, in the actual use of CRFL, there is a trade-off between certified robustness and accuracy: the larger noise brings better certified robustness but the apparent loss of accuracy. For defending F3BA in our experiment, the noise that nullifies the F3BA attack in most rounds makes the global model lose nearly half of the accuracy on its main task compared to plain FedAvg.",
+        "bbox": [
+            514,
+            763,
+            911,
+            888
+        ],
+        "page_idx": 5
+    },
+    {
+        "type": "page_footnote",
+        "text": "10 In order to satisfy  $n \\leq 4f + 3$ , Bulyan can assume at most 4 malicious clients for a total of 20 clients.",
+        "bbox": [
+            81,
+            861,
+            478,
+            888
+        ],
+        "page_idx": 5
+    },
+    {
+        "type": "image",
+        "img_path": "images/c38ab3b04d72fa72546f37990763e3b222850435cc658d156654005c2f2011b5.jpg",
+        "image_caption": [
+            "Figure 5: ACC/ASR of F3BA, DBA, and Neurotoxin against CRFL with the same  $\\sigma = 0.001$ ."
+        ],
+        "image_footnote": [],
+        "bbox": [
+            116,
+            66,
+            444,
+            193
+        ],
+        "page_idx": 6
+    },
+    {
+        "type": "image",
+        "img_path": "images/a929a35912bf23d771f0a1054021c917be9e59466da6eb56c380d8102f8a88e8.jpg",
+        "image_caption": [
+            "Figure 6: ACC/ASR of F3BA against CRFL with different  $\\sigma$ ."
+        ],
+        "image_footnote": [],
+        "bbox": [
+            117,
+            234,
+            436,
+            361
+        ],
+        "page_idx": 6
+    },
+    {
+        "type": "text",
+        "text": "3.4 Ablation Study on Component Importance",
+        "text_level": 1,
+        "bbox": [
+            83,
+            407,
+            454,
+            422
+        ],
+        "page_idx": 6
+    },
+    {
+        "type": "text",
+        "text": "We use CRFL to test the components in the proposed attack on the attack effectiveness<sup>11</sup>. We find that F3BA with all of components including training, flipping, and the trigger optimization achieves better ASR and can even fully evade defenses not compromised by previous training-based backdoor attacks. While a flip operation with respect to a fixed trigger can already boost attack, an adaptively-optimized trigger further amplifies the attack effectiveness and thus improving the ASR to a higher level.",
+        "bbox": [
+            81,
+            426,
+            478,
+            551
+        ],
+        "page_idx": 6
+    },
+    {
+        "type": "table",
+        "img_path": "images/63c882ee45d31022517fdad50f2333d33feedb5f7865114e9bdce2a939a3da67.jpg",
+        "table_caption": [],
+        "table_footnote": [],
+        "table_body": "<table><tr><td>Cifar-10</td><td>Train</td><td>Train+Flip</td><td>Train+Flip+TrigerOpt</td></tr><tr><td>50 rounds</td><td>86.95%</td><td>88.90%</td><td>99.01%</td></tr><tr><td>100 rounds</td><td>84.45%</td><td>85.58%</td><td>98.79%</td></tr><tr><td>Tiny-Imagenet</td><td>Train</td><td>Train+Flip</td><td>Train+Flip+TrigerOpt</td></tr><tr><td>50 rounds</td><td>50.81%</td><td>71.41%</td><td>98.77%</td></tr><tr><td>100 rounds</td><td>65.52%</td><td>67.49%</td><td>99.90%</td></tr></table>",
+        "bbox": [
+            99,
+            558,
+            459,
+            648
+        ],
+        "page_idx": 6
+    },
+    {
+        "type": "text",
+        "text": "Table 3: Effect of different components in F3BA on ASR.",
+        "bbox": [
+            107,
+            650,
+            450,
+            664
+        ],
+        "page_idx": 6
+    },
+    {
+        "type": "text",
+        "text": "4 Takeaway for Practitioners",
+        "text_level": 1,
+        "bbox": [
+            148,
+            676,
+            411,
+            691
+        ],
+        "page_idx": 6
+    },
+    {
+        "type": "text",
+        "text": "From the results in Section 3, there is no panacea for the threat of backdoor attacks. Current federated backdoor defenses, represented by the three categories, all have their own Achilles' heel facing stealthier and more adaptive attacks such as F3BA: model-refinement defenses enhance the global model's robustness towards data drift while completely fail to erase the backdoor in malicious updates; certain robust-aggregation (e.g., Bulyan, Robust LR) and certified-robustness (e.g., CRFL) defenses achieve acceptable backdoor defense capabilities in practice when imposing strong intervention mechanisms such as introducing large random noise or reversing global updates. However,",
+        "bbox": [
+            81,
+            696,
+            478,
+            863
+        ],
+        "page_idx": 6
+    },
+    {
+        "type": "text",
+        "text": "such strong interventions also inevitably hurt the model's natural accuracy. Overall, we recommend the practitioners to adopt Bulyan or CRFL in the cases where the natural accuracy is already satisfiable or is less important, as they are the most helpful in defending against backdoors.",
+        "bbox": [
+            514,
+            69,
+            911,
+            138
+        ],
+        "page_idx": 6
+    },
+    {
+        "type": "text",
+        "text": "5 Additional Related Work",
+        "text_level": 1,
+        "bbox": [
+            591,
+            160,
+            836,
+            175
+        ],
+        "page_idx": 6
+    },
+    {
+        "type": "text",
+        "text": "In this section, we review the most relevant works in general FL as well as the backdoor attack and defenses of FL.",
+        "bbox": [
+            514,
+            186,
+            911,
+            214
+        ],
+        "page_idx": 6
+    },
+    {
+        "type": "text",
+        "text": "Federated Learning: Federated Learning (Konečný et al. 2016) was proposed for the communication efficiency in distributed settings. FedAvg (McMahan et al. 2017) works by averaging local SGD updates, of which the variants have also been proposed such as SCAFFOLD (Karimireddy et al. 2020), FedProx (Li et al. 2020), FedNova (Wang et al. 2020b). (Reddi et al. 2020; Wang, Lin, and Chen 2022) proposed adaptive federated optimization methods for better adaptivity. Recently, new aggregation strategies such as neuron alignment (Singh and Jaggi 2020) or ensemble distillation (Lin et al. 2020) has also been proposed.",
+        "bbox": [
+            514,
+            215,
+            911,
+            368
+        ],
+        "page_idx": 6
+    },
+    {
+        "type": "text",
+        "text": "Backdoor Attacks on Federated Learning: (Bagdasaryan et al. 2020) injects backdoor by predicting the global model updates and replacing them with the one that was embedded with backdoors. (Bhagoji et al. 2019) aims to achieve both global model convergence and targeted poisoning attack by explicitly boosting the malicious updates and alternatively minimizing backdoor objectives and the stealth metric. (Wang et al. 2020a) shows that robustness to backdoors implies model robustness to adversarial examples and proposed edge-case backdoors. DBA (Xie et al. 2019) decomposes the trigger pattern into sub-patterns and distributing them for several malicious clients to implant.",
+        "bbox": [
+            514,
+            368,
+            913,
+            532
+        ],
+        "page_idx": 6
+    },
+    {
+        "type": "text",
+        "text": "Backdoor Defenses on Federated Learning: Robust Learning Rate (Ozdayi, Kantarcioglu, and Gel 2020) flips the signs of some dimensions of global updates. (Wu et al. 2020) designs a federated pruning method to remove redundant neurons for backdoor defense. (Xie et al. 2021) proposed a certified defense that exploits clipping and smoothing for better model smoothness. BAFFLE (Andreina et al. 2021) uses a set of validating clients, refreshed in each training round, to determine whether the global updates have been subject to a backdoor injection. Recent work (Rieger et al. 2022) identifies suspicious model updates via clustering-based similarity estimations.",
+        "bbox": [
+            514,
+            534,
+            913,
+            700
+        ],
+        "page_idx": 6
+    },
+    {
+        "type": "text",
+        "text": "6 Conclusions",
+        "text_level": 1,
+        "bbox": [
+            645,
+            722,
+            782,
+            737
+        ],
+        "page_idx": 6
+    },
+    {
+        "type": "text",
+        "text": "In this paper, we propose F3BA to backdoor federated learning. Our attack does not require explicitly scaling malicious uploaded clients' local updates but instead flips the weights of some unimportant model parameters for the main task. With F3BA, we evaluate the current state-of-the-art backdoor defenses in federated learning. In most of the tests, F3BA is able to evade and reach a high attack success rate. From this we argue that despite providing some robustness, the current stage of backdoor defenses still expose the vulnerability to the advanced backdoor attacks.",
+        "bbox": [
+            514,
+            750,
+            911,
+            888
+        ],
+        "page_idx": 6
+    },
+    {
+        "type": "page_footnote",
+        "text": "Detailed ablation studies can be found in the Appendix.",
+        "bbox": [
+            99,
+            875,
+            441,
+            888
+        ],
+        "page_idx": 6
+    },
+    {
+        "type": "text",
+        "text": "References",
+        "text_level": 1,
+        "bbox": [
+            233,
+            66,
+            330,
+            82
+        ],
+        "page_idx": 7
+    },
+    {
+        "type": "list",
+        "sub_type": "ref_text",
+        "list_items": [
+            "Andreina, S.; Marson, G. A.; Möllering, H.; and Karame, G. 2021. Baffle: Backdoor detection via feedback-based federated learning. In 2021 IEEE 41st International Conference on Distributed Computing Systems (ICDCS), 852-863. IEEE.",
+            "Bagdasaryan, E.; Veit, A.; Hua, Y.; Estrin, D.; and Shmatikov, V. 2020. How to backdoor federated learning. In International Conference on Artificial Intelligence and Statistics, 2938-2948. PMLR.",
+            "Bhagoji, A. N.; Chakraborty, S.; Mittal, P.; and Calo, S. 2019. Analyzing federated learning through an adversarial lens. In International Conference on Machine Learning, 634-643. PMLR.",
+            "Blanchard, P.; El Mhamdi, E. M.; Guerraoui, R.; and Stainer, J. 2017. Machine learning with adversaries: Byzantine tolerant gradient descent. In Proceedings of the 31st International Conference on Neural Information Processing Systems, 118-128.",
+            "Cao, X.; Jia, J.; and Gong, N. Z. 2021. Provably secure federated learning against malicious clients. In Proceedings of the AAAI Conference on Artificial Intelligence, volume 35, 6885-6893.",
+            "Ester, M.; Kriegel, H.-P.; Sander, J.; and Xu, X. 1996. A Density-Based Algorithm for Discovering Clusters in Large Spatial Databases with Noise. In Proceedings of the Second International Conference on Knowledge Discovery and Data Mining, KDD'96, 226-231. AAAI Press.",
+            "Gu, T.; Dolan-Gavitt, B.; and Garg, S. 2019. BadNets: Identifying Vulnerabilities in the Machine Learning Model Supply Chain. arXiv:1708.06733.",
+            "Guerraoui, R.; Rouault, S.; et al. 2018. The hidden vulnerability of distributed learning in byzantium. In International Conference on Machine Learning, 3521-3530. PMLR.",
+            "Hard, A.; Rao, K.; Mathews, R.; Ramaswamy, S.; Beaufays, F.; Augenstein, S.; Eichner, H.; Kiddon, C.; and Ramage, D. 2018. Federated learning for mobile keyboard prediction. arXiv preprint arXiv:1811.03604.",
+            "Jiang, J. C.; Kantarci, B.; Oktug, S.; and Soyata, T. 2020. Federated learning in smart city sensing: Challenges and opportunities. Sensors, 20(21): 6230.",
+            "Karimireddy, S. P.; Kale, S.; Mohri, M.; Reddi, S.; Stich, S.; and Suresh, A. T. 2020. Scaffold: Stochastic controlled averaging for federated learning. In International Conference on Machine Learning, 5132-5143. PMLR.",
+            "Konečny, J.; McMahan, H. B.; Yu, F. X.; Richtárik, P.; Suresh, A. T.; and Bacon, D. 2016. Federated learning: Strategies for improving communication efficiency. arXiv preprint arXiv:1610.05492.",
+            "Krizhevsky, A.; and Hinton, G. 2009. Learning multiple layers of features from tiny images. Technical Report 0, University of Toronto, Toronto, Ontario.",
+            "Le, Y.; and Yang, X. S. 2015. Tiny ImageNet Visual Recognition Challenge."
+        ],
+        "bbox": [
+            83,
+            88,
+            480,
+            888
+        ],
+        "page_idx": 7
+    },
+    {
+        "type": "list",
+        "sub_type": "ref_text",
+        "list_items": [
+            "Leroy, D.; Coucke, A.; Lavril, T.; Gisselbrecht, T.; and Dureau, J. 2019. Federated learning for keyword spotting. In ICASSP 2019-2019 IEEE International Conference on Acoustics, Speech and Signal Processing (ICASSP), 6341-6345. IEEE.",
+            "Li, T.; Sahu, A. K.; Talwalkar, A.; and Smith, V. 2020. Federated learning: Challenges, methods, and future directions. IEEE Signal Processing Magazine, 37(3): 50-60.",
+            "Li, Y.; Lyu, X.; Koren, N.; Lyu, L.; Li, B.; and Ma, X. 2021. Neural Attention Distillation: Erasing Backdoor Triggers from Deep Neural Networks. arXiv:2101.05930.",
+            "Lin, T.; Kong, L.; Stich, S. U.; and Jaggi, M. 2020. Ensemble distillation for robust model fusion in federated learning. NeurIPS.",
+            "Liu, K.; Dolan-Gavitt, B.; and Garg, S. 2018. Fine-pruning: Defending against backdooring attacks on deep neural networks. In International Symposium on Research in Attacks, Intrusions, and Defenses, 273-294. Springer.",
+            "McMahan, B.; Moore, E.; Ramage, D.; Hampson, S.; and y Arcas, B. A. 2017. Communication-efficient learning of deep networks from decentralized data. In Artificial intelligence and statistics, 1273-1282. PMLR.",
+            "Minka, T. 2000. Estimating a Dirichlet distribution.",
+            "Ozdayi, M. S.; Kantarcioglu, M.; and Gel, Y. R. 2020. Defending against backdoors in federated learning with robust learning rate. arXiv preprint arXiv:2007.03767.",
+            "Reddi, S.; Charles, Z.; Zaheer, M.; Garrett, Z.; Rush, K.; Konečný, J.; Kumar, S.; and McMahan, H. B. 2020. Adaptive federated optimization. arXiv preprint arXiv:2003.00295.",
+            "Rieger, P.; Nguyen, T. D.; Miettinen, M.; and Sadeghi, A.-R. 2022. DeepSight: Mitigating Backdoor Attacks in Federated Learning Through Deep Model Inspection. arXiv preprint arXiv:2201.00763.",
+            "Sanh, V.; Wolf, T.; and Rush, A. M. 2020. Movement Pruning: Adaptive Sparsity by Fine-Tuning. In Larochelle, H.; Ranzato, M.; Hadsell, R.; Balcan, M.; and Lin, H., eds., Advances in Neural Information Processing Systems 33: Annual Conference on Neural Information Processing Systems 2020, NeurIPS 2020, December 6-12, 2020, virtual.",
+            "Singh, S. P.; and Jaggi, M. 2020. Model fusion via optimal transport. Advances in Neural Information Processing Systems, 33: 22045-22055.",
+            "Sturluson, S. P.; Trew, S.; Muñoz-González, L.; Grama, M.; Passerat-Palmbach, J.; Rueckert, D.; and Alansary, A. 2021. FedRAD: Federated Robust Adaptive Distillation. arXiv:2112.01405.",
+            "Wang, H.; Sreenivasan, K.; Rajput, S.; Vishwakarma, H.; Agarwal, S.; Sohn, J.-y.; Lee, K.; and Papailiopoulos, D. 2020a. Attack of the tails: Yes, you really can backdoor federated learning. arXiv preprint arXiv:2007.05084.",
+            "Wang, J.; Liu, Q.; Liang, H.; Joshi, G.; and Poor, H. V. 2020b. Tackling the objective inconsistency problem in heterogeneous federated optimization. arXiv preprint arXiv:2007.07481."
+        ],
+        "bbox": [
+            517,
+            68,
+            913,
+            888
+        ],
+        "page_idx": 7
+    },
+    {
+        "type": "list",
+        "sub_type": "ref_text",
+        "list_items": [
+            "Wang, Y.; Lin, L.; and Chen, J. 2022. Communication-Efficient Adaptive Federated Learning. arXiv preprint arXiv:2205.02719.",
+            "Wu, C.; Yang, X.; Zhu, S.; and Mitra, P. 2020. Mitigating backdoor attacks in federated learning. arXiv preprint arXiv:2011.01767.",
+            "Xie, C.; Chen, M.; Chen, P.-Y.; and Li, B. 2021. CRFL: Certifiably Robust Federated Learning against Backdoor Attacks. arXiv:2106.08283.",
+            "Xie, C.; Huang, K.; Chen, P.-Y.; and Li, B. 2019. Dba: Distributed backdoor attacks against federated learning. In International Conference on Learning Representations.",
+            "Xu, J.; Glicksberg, B. S.; Su, C.; Walker, P.; Bian, J.; and Wang, F. 2021. Federated learning for healthcare informatics. Journal of Healthcare Informatics Research, 5(1): 1-19.",
+            "Yin, D.; Chen, Y.; Kannan, R.; and Bartlett, P. 2018. Byzantine-robust distributed learning: Towards optimal statistical rates. In International Conference on Machine Learning, 5650-5659. PMLR.",
+            "Zhang*, Z.; Panda*, A.; Song, L.; Yang, Y.; Mahoney, M. W.; Gonzalez, J. E.; Ramchandran, K.; and Mittal, P. 2022. Neurotoxin: Durable Backdoors in Federated Learning. In International Conference on Machine Learning.",
+            "Zhao, Y.; Li, M.; Lai, L.; Suda, N.; Civin, D.; and Chandra, V. 2018. Federated learning with non-iid data. arXiv preprint arXiv:1806.00582."
+        ],
+        "bbox": [
+            83,
+            68,
+            478,
+            452
+        ],
+        "page_idx": 8
+    },
+    {
+        "type": "text",
+        "text": "A Algorithms",
+        "text_level": 1,
+        "bbox": [
+            214,
+            66,
+            349,
+            84
+        ],
+        "page_idx": 9
+    },
+    {
+        "type": "text",
+        "text": "A.1 Focused-Flip Federated Backdoor Attack",
+        "text_level": 1,
+        "bbox": [
+            83,
+            90,
+            447,
+            106
+        ],
+        "page_idx": 9
+    },
+    {
+        "type": "text",
+        "text": "We summarize our F3BA algorithm as pseudo-code in Algorithm 1. Specifically, our F3BA method searches for candidate parameters (Line 6 - Line 9) based on directional or directionless criteria, such that it is difficult to remove these backdoor-related parameters by coarse-scale model-refinement or aggregation rules on the server. After each time flipping candidate parameters in a certain layer, the same validation samples  $\\mathbf{x}_v$  are required (Line 12) to calculate the activation difference (Line 15) for flipping candidate parameters in the following layers.",
+        "bbox": [
+            81,
+            112,
+            478,
+            253
+        ],
+        "page_idx": 9
+    },
+    {
+        "type": "code",
+        "sub_type": "algorithm",
+        "code_caption": [
+            "Algorithm 1: Focused-Flip Federated Backdoor Attack (F3BA)"
+        ],
+        "code_body": "1: Input:  $\\sigma (\\cdot)$  : activation function   \n2:  $\\alpha$  : learning rate for backdoor training   \n3:  $K$  : local training iterations   \n4:  $\\mathcal{L}_{\\mathrm{train}}$  : loss function for backdoor training   \n5: Malicious client  $i$  receives  $\\pmb{\\theta}_t^{i,0} := \\{\\mathbf{w}^{[1]},\\mathbf{w}^{[2]},\\dots,\\mathbf{w}^{[L]}\\}$  from the server. Let us denote each layer's output as  $\\mathbf{z}^{[1]}(\\cdot),\\mathbf{z}^{[2]}(\\cdot),\\dots,\\mathbf{z}^{[L]}(\\cdot)$ .   \n6: for  $j = 1$  to  $L$  do   \n7: Compute  $S_{t}^{[j]}$  by Equation (2.3) or Equation (2.4)   \n8: Compute  $\\mathbf{m}_s^{[j]}$  as a mask to select  $s\\%$  lowest scores in  $S_{t}^{[j]}$    \n9: end for   \n10: Resize  $\\Delta$  to the size of  $\\mathbf{w}^{[1]}$  and get  $\\Delta^*$    \n11:  $\\mathbf{w}^{[1]} = \\mathbf{m}_s^{[1]}\\odot$  sign  $(\\Delta^{*})\\odot |\\mathbf{w}^{[1]}| + (\\mathbf{1} - \\mathbf{m}_s^{[1]})\\odot \\mathbf{w}^{[1]}$    \n12: Sample a batch of validation data  $\\mathbf{x}_v$  from  $\\mathcal{D}_i$    \n13: for  $j = 2$  to  $L$  do   \n14:  $\\mathbf{x}_v' = (1 - \\mathbf{m})\\odot \\mathbf{x}_v + \\mathbf{m}\\odot \\Delta //backdoor generation$    \n15:  $\\delta = \\sigma (\\mathbf{z}^{[j - 1]}(\\mathbf{x}_v')) - \\sigma (\\mathbf{z}^{[j - 1]}(\\mathbf{x}_v))$    \n16: Resize  $\\delta$  to the size of  $\\mathbf{w}^{[j]}$  and get  $\\delta^*$    \n17:  $\\mathbf{w}^{[j]} = \\mathbf{m}_s^{[i]}\\odot$  sign  $(\\delta^{*})\\odot |\\mathbf{w}^{[j]}| + (\\mathbf{1} - \\mathbf{m}_s^{[j]})\\odot \\mathbf{w}^{[j]}$    \n18: end for   \n19: for  $k = 1$  to  $K$  do   \n20: Sample a batch of training data  $\\mathbf{x}_k$  from  $\\mathcal{D}_i$    \n21:  $\\mathbf{x}_k' = (\\mathbf{1} - \\mathbf{m})\\odot \\mathbf{x}_k + \\mathbf{m}\\odot \\Delta //backdoor generation$    \n22:  $\\pmb{\\theta}_{t}^{i,k} = \\pmb{\\theta}_{t}^{i,k - 1} - \\alpha \\nabla_{\\pmb{\\theta}}\\mathcal{L}_{\\mathrm{train}}(\\mathbf{x}_k,\\mathbf{x}_k',y_{\\mathrm{target}},\\pmb{\\theta}_{t}^{i,k - 1})$    \n23: end for",
+        "bbox": [
+            91,
+            303,
+            478,
+            691
+        ],
+        "page_idx": 9
+    },
+    {
+        "type": "text",
+        "text": "A.2 Focused-Flip Federated Backdoor Attack With Trigger Optimization",
+        "text_level": 1,
+        "bbox": [
+            83,
+            724,
+            447,
+            757
+        ],
+        "page_idx": 9
+    },
+    {
+        "type": "text",
+        "text": "We also summarize the more advanced F3BA with trigger pattern optimization in Algorithm 2. The major difference compared with Algorithm 1 lies in the trigger optimization part (Line 14 - Line 19), where the first layer is repetitively flipped (Line 17) based on the signs of trigger pattern in the same position after each optimization step. After the trigger is optimized, the focused flip of the first layer is also finished, and the rest part (flipping the following layers) is the same as Algorithm 2.",
+        "bbox": [
+            81,
+            762,
+            480,
+            888
+        ],
+        "page_idx": 9
+    },
+    {
+        "type": "code",
+        "sub_type": "algorithm",
+        "code_caption": [],
+        "code_body": "Algorithm 2: Focused-Flip Federated Backdoor Attack with Trigger Optimization (F3BA-TrigOpt)  \n1: Input:  $\\sigma(\\cdot)$ : activation function  \n2:  $\\alpha$ : learning rate for backdoor training  \n3:  $\\eta$ : learning rate for trigger optimization  \n4:  $K$ : local training iterations  \n5:  $P$ : trigger optimization iterations  \n6:  $\\mathcal{L}_{train}$ : loss function for backdoor training  \n7:  $\\mathcal{L}_{\\mathrm{trig}}$ : loss function for trigger optimization  \n8: Malicious client  $i$  receives  $\\theta_{t}^{i,0} := \\{\\mathbf{w}^{[1]}, \\mathbf{w}^{[2]},.., \\mathbf{w}^{[L]}\\}$  from the server. Let us denote each layer's output as  $\\mathbf{z}^{[1]}(\\cdot), \\mathbf{z}^{[2]}(\\cdot),.., \\mathbf{z}^{[L]}(\\cdot)$ .  \n9: for  $j = 1$  to  $L$  do  \n10: Compute  $S_{t}^{[j]}$  by Equation (2.3) or Equation (2.4)  \n11: Compute  $\\mathbf{m}_{s}^{[j]}$  as a mask that selects  $s\\%$  lowest scores in  $S_{t}^{[j]}$   \n12: end for  \n13: for  $p = 1$  to  $P$  do  \n14: Resize  $\\Delta$  to the size of  $\\mathbf{w}^{[1]}$  and get  $\\Delta^*$   \n15:  $\\mathbf{w}^{[1]} = \\mathbf{m}_{s}^{[1]} \\odot \\text{sign}(\\Delta^*) \\odot |\\mathbf{w}^{[1]}| + (\\mathbf{1} - \\mathbf{m}_{s}^{[1]}) \\odot \\mathbf{w}^{[1]}$   \n16: Sample a batch of training data  $\\mathbf{x}_p$  from  $\\mathcal{D}_i$   \n17:  $\\mathbf{x}_p' = (1 - \\mathbf{m}) \\odot \\mathbf{x}_p + \\mathbf{m} \\odot \\Delta // \\text{backdoor generation}$   \n18:  $\\mathcal{L}_{\\mathrm{trig}}(\\mathbf{x}_p, \\mathbf{x}_p') = ||\\sigma(\\mathbf{z}^{[1]}(\\mathbf{x}_p) - \\sigma(\\mathbf{z}^{[1]}(\\mathbf{x}_p'))||_2^2$   \n19:  $\\Delta = \\Delta + \\eta \\cdot \\nabla_{\\Delta} \\mathcal{L}_{\\mathrm{trig}}(\\mathbf{x}_p, \\mathbf{x}_p')$   \n20: end for  \n21: for  $j = 2$  to  $L$  do  \n22: Sample a batch of validation data  $\\mathbf{x}_v$  from  $\\mathcal{D}_i$   \n23:  $\\mathbf{x}_v' = (1 - \\mathbf{m}) \\odot \\mathbf{x}_v + \\mathbf{m} \\odot \\Delta // \\text{backdoor generation}$   \n24:  $\\delta = \\sigma(\\mathbf{z}^{[j-1]}(\\mathbf{x}_v)) - \\sigma(\\mathbf{z}^{[j-1]}(\\mathbf{x}_v'))$   \n25: Resize  $\\delta$  to the size of  $\\mathbf{w}^{[j]}$  and get  $\\delta^*$   \n26:  $\\mathbf{w}^{[j]} = \\mathbf{m}_{s}^{[j]} \\odot \\text{sign}(\\delta^*) \\odot |\\mathbf{w}^{[j]}| + (\\mathbf{1} - \\mathbf{m}_{s}^{[j]}) \\odot \\mathbf{w}^{[j]}$   \n27: end for  \n28: for  $k = 1$  to  $K$  do  \n29: Sample a batch of training data  $\\mathbf{x}_k$  from  $\\mathcal{D}_i$   \n30:  $\\mathbf{x}_k' = (\\mathbf{1} - \\mathbf{m}) \\odot \\mathbf{x}_k + \\mathbf{m} \\odot \\Delta // \\text{backdoor generation}$   \n31:  $\\theta_{t,k}^{i,k} = \\theta_{t}^{i,k-1} - \\alpha\\nabla_{\\theta} \\mathcal{L}_{\\mathrm{train}}(\\mathbf{x}_k, \\mathbf{x}_k', y_{\\mathrm{target}}, \\theta_t^{i,k-1})$   \n32: end for",
+        "bbox": [
+            517,
+            66,
+            913,
+            621
+        ],
+        "page_idx": 9
+    },
+    {
+        "type": "text",
+        "text": "B Discussion on Selection Criterion of the Candidate Parameters",
+        "text_level": 1,
+        "bbox": [
+            531,
+            648,
+            898,
+            683
+        ],
+        "page_idx": 9
+    },
+    {
+        "type": "text",
+        "text": "As shown in Eq. (2.3) and Eq. (2.4), we have two possible criteria (Directional or Directionless) for the selection of candidate parameters. In our paper, we set the Directional Criteria as the default setting for F3BA. Though it works well in most cases such as when attacking model-refinement defenses, we find that for some robust aggregation defenses (e.g., Bulyan), we need to adjust it to fit better. In this section, we discuss these two criteria: what are the meanings of the two criteria and how to pick the right one to use in different situations.",
+        "bbox": [
+            514,
+            691,
+            913,
+            829
+        ],
+        "page_idx": 9
+    },
+    {
+        "type": "text",
+        "text": "We first talk about the Directional Criteria, which is our default setting.",
+        "bbox": [
+            514,
+            830,
+            911,
+            859
+        ],
+        "page_idx": 9
+    },
+    {
+        "type": "text",
+        "text": "Directional Criteria target parameters that are moving significantly far away from 0 (and consider that as im",
+        "bbox": [
+            514,
+            859,
+            913,
+            888
+        ],
+        "page_idx": 9
+    },
+    {
+        "type": "text",
+        "text": "important weight). To see this, note that we will obtain a large importance score under two scenarios: (1) when the  $r$ -th element in  $\\mathbf{w}_t^{[j]}$  is increasing, i.e.,  $\\left[\\frac{\\partial\\mathcal{L}_{\\mathrm{g}}}{\\partial\\mathbf{w}_t^{[j]}}\\right]_r < 0$ , and  $\\left[\\mathbf{w}_t^{[j]}\\right]_r > 0$ ; (2) when the  $r$ -th element in  $\\mathbf{w}_t^{[j]}$  is decreasing, i.e.,  $\\left[\\frac{\\partial\\mathcal{L}_{\\mathrm{g}}}{\\partial\\mathbf{w}_t^{[j]}}\\right]_r > 0$ , and  $\\left[\\mathbf{w}_t^{[j]}\\right]_r < 0$ . Both scenarios suggest that  $\\left[\\mathbf{w}_t^{[j]}\\right]_r$  is moving away from 0. On the contrary, when the parameter weight and its derivative is the same sign, the criterion regards this parameter as not important for its main task. F3BA exploits these unimportant parameters (moving towards 0) and flips their signs to mount a strong and persistent attack without damaging performance on the main task.",
+        "bbox": [
+            86,
+            68,
+            477,
+            263
+        ],
+        "page_idx": 10
+    },
+    {
+        "type": "text",
+        "text": "Despite having little influence on the main task, this criterion tends to select parameters with the largest absolute values on weights or updates (approximations to the derivatives) as candidates. Generally, it helps backdoor FL systems where a low proportion of malicious clients need to compete with a large number of benign ones, but also be defended by robust aggregation methods that filter extreme weights (updates). Therefore, we also propose the Directionless Criteria for such situations.",
+        "bbox": [
+            86,
+            265,
+            477,
+            387
+        ],
+        "page_idx": 10
+    },
+    {
+        "type": "text",
+        "text": "Directionless Criteria target parameters with the smallest magnitudes on both their parameter weights and updates. When a parameter's weight (update) is closer to 0 compared with other parameters, it would less likely to be regarded as an outlier or potentially malicious update. When the data are non-i.i.d distributed, the proposed local updates can not reach an agreement on the signs of some coordinates. In this circumstance, smaller  $|\\mathbf{w}_t^{[j]}$  and smaller  $\\left|\\frac{\\partial\\mathcal{L}_{\\mathrm{g}}}{\\partial\\mathbf{w}_t^{[j]}}\\right|$  separately ensure that the candidate parameters would not be too large or small among all proposed ones before and after being flipped, ensuring stealth of the attack.",
+        "bbox": [
+            86,
+            388,
+            477,
+            549
+        ],
+        "page_idx": 10
+    },
+    {
+        "type": "text",
+        "text": "In summary, as a complement to directional criteria, directionless criteria bypass the robust aggregation defenses which are usually based on filtering or changing the extreme values of model parameters.",
+        "bbox": [
+            86,
+            550,
+            477,
+            604
+        ],
+        "page_idx": 10
+    },
+    {
+        "type": "text",
+        "text": "In Figure 7, we show two examples: Robust LR and Bulyan, under F3BA attack using directional and directionless criteria respectively. From Figure 7, we can observe that using directional criteria in Robust LR helps reach a higher ASR in fewer rounds compared with directionless criteria while using the same directional criteria in Bulyan directly leads to failure of attack (Directionless Criteria is needed here). We argue that the gap in attack effectiveness with two criteria may be attributed to the defense mechanism. For Robust LR, since it does not put constraints on a single proposed update but the signs of all proposed ones, we can use directional criteria to reach a stronger attack. For Bulyan, however, the directional criterion makes the updates of flipped parameters become larger, with a higher probability to be excluded from the aggregation. To keep the malicious updates stealthy after being flipped, we turn to apply",
+        "bbox": [
+            86,
+            604,
+            477,
+            827
+        ],
+        "page_idx": 10
+    },
+    {
+        "type": "text",
+        "text": "the directionless criteria.",
+        "bbox": [
+            519,
+            69,
+            681,
+            80
+        ],
+        "page_idx": 10
+    },
+    {
+        "type": "text",
+        "text": "C Additional Experimental Details",
+        "text_level": 1,
+        "bbox": [
+            562,
+            95,
+            867,
+            112
+        ],
+        "page_idx": 10
+    },
+    {
+        "type": "text",
+        "text": "C.1 General Experimental Settings",
+        "text_level": 1,
+        "bbox": [
+            519,
+            114,
+            800,
+            131
+        ],
+        "page_idx": 10
+    },
+    {
+        "type": "text",
+        "text": "We evaluate the attacks on two classification datasets with non-i.i.d. data distributions: CIFAR-10 (Krizhevsky and Hinton 2009) and Tiny/ImageNet (Le and Yang 2015). To simulate non-i.i.d. training data and supply the server with unbalanced samples from each class for model refinement, we divide the training images (in both datasets) using a Dirichlet distribution (Minka 2000) with a concentration hyperparameter  $h$  (a larger  $h$  means a more i.i.d. data distribution). A shared global model is trained by all participants each round for aggregation. We evaluate CIFAR-10 and TinyImagenet dataset separately with a simple CNN (2 convolutional layers and 2 fully connected layers) and Resnet-18. Each participating client selected in one round will train for local epochs using SGD with the learning rate of  $\\eta = 0.001$  for both CIFAR and Tiny ImageNet. To ensure that the backdoor trigger is practical and hard to notice by human eyes, we limit the size of the trigger to a small  $3 \\times 3$  square on the CIFAR-10 dataset, and  $4 \\times 4$  for the Tiny ImageNet dataset. For F3BA, we set the trigger optimization iteration  $P = 10$  and  $\\eta = 0.1$ . We apply different candidate parameter selection proportions  $1\\%$  and  $0.1\\%$  respectively for convolutional layers and fully-connected layers.",
+        "bbox": [
+            519,
+            133,
+            911,
+            439
+        ],
+        "page_idx": 10
+    },
+    {
+        "type": "text",
+        "text": "C.2 Compare with the DBA's Experimental Setting",
+        "text_level": 1,
+        "bbox": [
+            519,
+            450,
+            864,
+            481
+        ],
+        "page_idx": 10
+    },
+    {
+        "type": "text",
+        "text": "Our goal is to use a realistic experimental settings to fairly and accurately evaluate the real-world performance of various federated backdoor defenses in the face of advanced backdoor attacks. We believe that it is unrealistic to specify a fixed number of malicious clients in each training round as in the experimental setup of DBA. In reality, due to the server's lack of knowledge on the clients (the server cannot know in advance whether a client is benign or malicious), it can only randomly select a subset of clients to participate in each training round (the number of malicious clients is unknown). In this case, it is more practical to randomly select participating clients among all the clients without distinguishing between benign and malicious clients as the experimental setting in F3BA.",
+        "bbox": [
+            519,
+            484,
+            911,
+            676
+        ],
+        "page_idx": 10
+    },
+    {
+        "type": "text",
+        "text": "We attack plain FedAvg with F3BA and DBA in the pretuned (in DBA) and post-tuned (in F3BA) experimental settings. Figure.8 and Figure.9 show that even without any defense, DBA could not evade FedAvg on Tiny-Imagenet dataset in the post-tuned setting, while F3BA succeed in both datasets for the two settings. Our chosen setting is actually harder and more practical than the setting of DBA. Since all the clients are randomly selected, as Figure.10 shows, the proportion of malicious clients among all the participating clients is much less than that in DBA's setting.",
+        "bbox": [
+            519,
+            678,
+            911,
+            816
+        ],
+        "page_idx": 10
+    },
+    {
+        "type": "text",
+        "text": "C.3 Additional Details on the Defense Baselines",
+        "text_level": 1,
+        "bbox": [
+            519,
+            828,
+            893,
+            842
+        ],
+        "page_idx": 10
+    },
+    {
+        "type": "text",
+        "text": "FedDF (Lin et al. 2020) leverages unlabeled data or artificially generated samples from a GAN's generator to achieve robust server-side model fusion, aggregate knowledge from",
+        "bbox": [
+            519,
+            845,
+            911,
+            888
+        ],
+        "page_idx": 10
+    },
+    {
+        "type": "page_footnote",
+        "text": "<sup>12</sup>Assume that we train the model from scratch, i.e., a model with all zero parameters. All important weights that significantly affect model accuracy will eventually move to either positive values or negative values.",
+        "bbox": [
+            86,
+            835,
+            477,
+            888
+        ],
+        "page_idx": 10
+    },
+    {
+        "type": "image",
+        "img_path": "images/f3cf1c8a5429fb8492bab5d83549111e33839709df50453b81e544fb7526c705.jpg",
+        "image_caption": [
+            "Figure 7: Attack success rate and accuracy against Robust LR and Bulyan on CIFAR-10 and Tiny imagenet datasets with directional and directionless criteria. 20 clients, 4 malicious."
+        ],
+        "image_footnote": [],
+        "bbox": [
+            106,
+            71,
+            297,
+            215
+        ],
+        "page_idx": 11
+    },
+    {
+        "type": "image",
+        "img_path": "images/19cfab51b1bd6ca52ad100380665938d8ff966619d03b3c2ed8a8983d3afe574.jpg",
+        "image_caption": [],
+        "image_footnote": [],
+        "bbox": [
+            297,
+            71,
+            486,
+            215
+        ],
+        "page_idx": 11
+    },
+    {
+        "type": "image",
+        "img_path": "images/8c14c6619d8f0c90079a6c1c11d01a36450c1b0a5c5ff43be992fe4250a016d2.jpg",
+        "image_caption": [],
+        "image_footnote": [],
+        "bbox": [
+            486,
+            71,
+            671,
+            215
+        ],
+        "page_idx": 11
+    },
+    {
+        "type": "image",
+        "img_path": "images/3fd52d2c489bbc6fd607a0335fa8b1d06b2bb2debcedde60c783ad61904df7c6.jpg",
+        "image_caption": [],
+        "image_footnote": [],
+        "bbox": [
+            671,
+            71,
+            861,
+            215
+        ],
+        "page_idx": 11
+    },
+    {
+        "type": "image",
+        "img_path": "images/e684ad6f5151cc877baa8f87e9874dc17f4680cd26fddf572bbd462a46519835.jpg",
+        "image_caption": [
+            "Figure 8: Attack success rate and accuracy of F3BA and DBA against plain FedAvg on CIFAR-10 and TinyImageNet datasets under the setting of DBA."
+        ],
+        "image_footnote": [],
+        "bbox": [
+            84,
+            284,
+            269,
+            404
+        ],
+        "page_idx": 11
+    },
+    {
+        "type": "image",
+        "img_path": "images/4a640b04042b94d8fc58ace8db250f31e93d6ba7f3059b4c2ee2efcea60a7fb2.jpg",
+        "image_caption": [],
+        "image_footnote": [],
+        "bbox": [
+            269,
+            285,
+            449,
+            402
+        ],
+        "page_idx": 11
+    },
+    {
+        "type": "image",
+        "img_path": "images/31a19d14a37ab1cd90d9e0acbbdae898b68341d60522d515e12947349f13e37e.jpg",
+        "image_caption": [
+            "Figure 9: Attack success rate and accuracy of F3BA and DBA against plain FedAvg on CIFAR-10 and TinyImageNet datasets under the setting of F3BA."
+        ],
+        "image_footnote": [],
+        "bbox": [
+            84,
+            473,
+            272,
+            593
+        ],
+        "page_idx": 11
+    },
+    {
+        "type": "image",
+        "img_path": "images/572a9c9129f651e9c45da84587821c041a0b642db4a8dac39ecce57c42cf85bf.jpg",
+        "image_caption": [],
+        "image_footnote": [],
+        "bbox": [
+            272,
+            473,
+            452,
+            593
+        ],
+        "page_idx": 11
+    },
+    {
+        "type": "image",
+        "img_path": "images/a61d4e24737079983e5dce3f15a472c174af95c165927c22dee1e6d2264a913f.jpg",
+        "image_caption": [
+            "Figure 10: The proportion of malicious clients of each training round in DBA's and F3BA's settings."
+        ],
+        "image_footnote": [],
+        "bbox": [
+            142,
+            664,
+            421,
+            805
+        ],
+        "page_idx": 11
+    },
+    {
+        "type": "text",
+        "text": "all received (heterogeneous) client models. Formally, in the  $t$ -th round, the server first obtains a global model  $\\theta_{t+1}$  with standard FedAvg as equation 2.1. The distillation process is described in Equation (3.1).",
+        "bbox": [
+            514,
+            287,
+            911,
+            343
+        ],
+        "page_idx": 11
+    },
+    {
+        "type": "text",
+        "text": "FedDF distills the global model with the ensembled logit predictions on clean unlabeled samples from each client's model, hence overcoming the limitation of the number of data samples and eliminating the effect of data drift.",
+        "bbox": [
+            514,
+            343,
+            911,
+            398
+        ],
+        "page_idx": 11
+    },
+    {
+        "type": "text",
+        "text": "FedRAD (Sturluson et al. 2021) utilizes median-based scoring along with knowledge distillation for ensemble distillation. In the  $t$ -th round with  $K$  participating clients, the median-based scoring assigns the  $i$ -th client a score  $s_i$  by counting how many times it gave the prediction for a server-side dataset  $\\mathbf{x}_s$ . For a classification task with  $M$  probable classes  $\\mathcal{C} = [c_1, c_2, \\dots, c_M]$  and a sample  $\\mathbf{x}$  in  $\\mathbf{x}_s$ , the  $i$ -th client's logits output for  $c_m$  is denoted as  $f_{\\theta_t^{i,K}}(x)[m]$ , and we get its score:",
+        "bbox": [
+            514,
+            398,
+            911,
+            526
+        ],
+        "page_idx": 11
+    },
+    {
+        "type": "equation",
+        "text": "\n$$\ns _ {i} = \\sum_ {\\mathbf {x} \\in \\mathbf {x} _ {s}} \\sum_ {c _ {m} \\in \\mathcal {C}} \\mathbf {1} \\left(f _ {\\boldsymbol {\\theta} _ {t} ^ {i, K}} (\\mathbf {x}) [ m ] = \\operatorname {m e d i a n} \\left(F _ {\\boldsymbol {\\theta} _ {t} ^ {K}} (\\mathbf {x}) [ m ]\\right)\\right)\n$$\n",
+        "text_format": "latex",
+        "bbox": [
+            529,
+            529,
+            898,
+            563
+        ],
+        "page_idx": 11
+    },
+    {
+        "type": "equation",
+        "text": "\n$$\n\\text {w h e r e} F _ {\\boldsymbol {\\theta} _ {t} ^ {K}} (\\mathbf {x}) [ m ] = \\left[ f _ {\\boldsymbol {\\theta} _ {t} ^ {1, K}} (\\mathbf {x}) [ m ], \\dots , f _ {\\boldsymbol {\\theta} _ {t} ^ {K, K}} (\\mathbf {x}) [ m ] \\right]\n$$\n",
+        "text_format": "latex",
+        "bbox": [
+            547,
+            564,
+            901,
+            585
+        ],
+        "page_idx": 11
+    },
+    {
+        "type": "text",
+        "text": "Then FedRAD normalizes  $s_i \\gets s_i / \\sum_{i=1}^{K} (s_i)$  to let all the clients' scores adding up to 1, and aggregates local models based on the rules in Equation (3.2). The major difference between FedDF and FedRAD during distillation is that the median  $F_{\\pmb{\\theta}_t^K}[m]$  is used instead of  $\\frac{1}{K} \\sum_{i \\in [K]} f_{\\pmb{\\theta}_{t+1}^i}(\\mathbf{x}_j)[m]$  to generate the  $m$ -th logit of teacher model's soft labels.",
+        "bbox": [
+            514,
+            588,
+            911,
+            676
+        ],
+        "page_idx": 11
+    },
+    {
+        "type": "text",
+        "text": "FedMV Pruning (Wu et al. 2020) lets each client provide a ranking of all  $p$  filters in its last convolutional layer based on their averaged activation values and decide which filters would ultimately be pruned in the global model. Suppose each client has a test dataset  $\\mathbf{x}_{\\mathrm{test}}$ , and the activations of its last convolutional layer is  $\\sigma(\\mathbf{x}_{\\mathrm{test}}) = [\\sigma_1(\\mathbf{x}_{\\mathrm{test}}), \\sigma_2(\\mathbf{x}_{\\mathrm{test}}), \\dots, \\sigma_p(\\mathbf{x}_{\\mathrm{test}})]$ . The  $i$ -th client gets the ranks of the  $p$  filter  $\\mathcal{R}^{i,K}$  based on the ascending order of  $\\sigma(\\mathbf{x}_{\\mathrm{test}})^{i,K}$  (the smallest  $\\sigma(\\cdot)$  means the smallest rank), and sends  $\\mathcal{R}^{[i,K]}$  with its local model  $\\theta^{[i,K]}$  for each round. The server averages the received rankings by filters  $\\mathcal{R}^K = \\mathrm{avg}(\\{\\mathcal{R}^{i,K}\\}_{1 \\leq i \\leq K})$ . As a result, the server obtains a global ranking for all the filters in the last convolutional layers.",
+        "bbox": [
+            514,
+            676,
+            911,
+            861
+        ],
+        "page_idx": 11
+    },
+    {
+        "type": "text",
+        "text": "Bulyan (Guerraoui, Rouault et al. 2018) argues that any current gradient aggregation rules (e.g. Krum, GeoMED,",
+        "bbox": [
+            514,
+            861,
+            911,
+            888
+        ],
+        "page_idx": 11
+    },
+    {
+        "type": "text",
+        "text": "BRUTE), where the aggregated vector is the result of a distance minimization scheme, can not defend the proposed malicious updates that is highly-divergent on only a few coordinates while keeping the others closed. In view of this, more than a combination of these rules, Bulyan bounds the aggregated updates around the median of all proposed updates at each coordinate and excludes those potentially malicious updates that disagree a lot. The two steps of Bulyan can be formalized as follows:",
+        "bbox": [
+            81,
+            68,
+            478,
+            191
+        ],
+        "page_idx": 12
+    },
+    {
+        "type": "list",
+        "sub_type": "text",
+        "list_items": [
+            "(1). Choose the updates closest to other updates among the proposed local updates. For pairwise distance, this would be the sum of Euclidean distance to other models. Move the chosen update from the \"received set\" to the \"selection set\", noted  $S$ . Repeat the procedure until get  $n - 2f$  updates in  $S$ .",
+            "(2). Aggregate  $n - 4f$  updates closest to the median by coordinate. Hence for each  $i \\in [1\\dots d]$  (Suppose the uploaded models has  $d$  dimensions), The resulting update  $G = \\theta_{t} - \\theta_{t-1} = (G[1]\\dots G[d])$ , so that for each of its coordinates  $G[\\cdot]$ :"
+        ],
+        "bbox": [
+            81,
+            193,
+            478,
+            327
+        ],
+        "page_idx": 12
+    },
+    {
+        "type": "equation",
+        "text": "\n$$\n\\forall i \\in [ 1, \\dots , d ], {\\pmb {G}} [ i ] = \\frac {1}{n - 4 f} \\sum_ {{\\pmb {X}} \\in \\mathcal {M} [ i ]} {\\pmb {X}} [ i ]\n$$\n",
+        "text_format": "latex",
+        "bbox": [
+            158,
+            334,
+            428,
+            369
+        ],
+        "page_idx": 12
+    },
+    {
+        "type": "text",
+        "text": "where  $\\mathcal{M}[i] = \\underset {\\mathcal{R}\\subset S,|\\mathcal{R}| = n - 4f}{\\arg \\min}(\\sum_{\\boldsymbol {X}\\in \\mathcal{R}}|\\boldsymbol {X}[i] - \\mathrm{median}[i]|)$  (C.1)",
+        "bbox": [
+            106,
+            372,
+            478,
+            414
+        ],
+        "page_idx": 12
+    },
+    {
+        "type": "equation",
+        "text": "\n$$\n\\operatorname {m e d i a n} [ i ] = \\underset {m = Y _ {i}, Y \\in \\mathcal {S}} {\\arg \\min } \\left(\\sum_ {Z \\in \\mathcal {S}} | m - Z _ {i} |\\right)\n$$\n",
+        "text_format": "latex",
+        "bbox": [
+            130,
+            417,
+            372,
+            446
+        ],
+        "page_idx": 12
+    },
+    {
+        "type": "text",
+        "text": "Simply stated: each i-th coordinate of  $\\pmb{G}$  equals to the average of the  $n - 4f$  closest  $i$ -th coordinates to the median of the  $n - 2f$  selected updates.",
+        "bbox": [
+            81,
+            454,
+            478,
+            496
+        ],
+        "page_idx": 12
+    },
+    {
+        "type": "text",
+        "text": "Robust LR requires a sufficient number of proposed updates with the same signs to decide the global optimization direction. It assumes that the direction of proposed updates for benign clients and malicious clients is in most cases inconsistent, hence the presence of malicious clients would change the distribution of the signs of all proposed local updates. As Equation (3.3), for each dimension with the sum of signs of updates fewer than a pre-defined threshold  $\\beta$ , the learning rate is multiplied by  $-1$ . With the number of adversarial agents sufficiently below  $\\beta$ , Robust LR is expected to move the global model from the backdoored model to the benign one. Since Robust LR only adjusts the learning rate, the approach is agnostic to the aggregation rules. For example, it can trivially work with update clipping and noise addition.",
+        "bbox": [
+            81,
+            496,
+            478,
+            690
+        ],
+        "page_idx": 12
+    },
+    {
+        "type": "text",
+        "text": "DeepSight (Rieger et al. 2022) inspects the output probabilities  $f_{\\theta^{i,K}}(\\mathbf{x}_{\\mathrm{rand}}) \\in \\mathbb{R}^{d_0 \\times d_c}$  ( $d_c$  is the number of classes) of the  $i$ -th local model  $\\theta^{i,K}$  on  $d_0$  given random  $d_1$ -dimensional inputs  $\\mathbf{x}_{\\mathrm{rand}} \\in \\mathbb{R}^{d_0 \\times d_1}$ . After inspect the model's sample-wise average  $(\\bar{f}_{\\theta^{i,K}}(\\mathbf{X}_{\\mathrm{rand}})) = \\sum_{p=1}^{n_0} (f_{\\theta^{i,K}}(\\mathbf{X}_{\\mathrm{rand}}[p])) \\in \\mathbb{R}^{d_c}$  and label the potentially malicious clients, DeepSight applies DBSCAN on participant clients (Ester et al. 1996) three times with distance matrices  $D_{\\mathrm{bias}}, D_{\\mathrm{conv}}, D_{\\mathrm{prob}} \\in \\mathbb{R}^{K \\times K}$  (assume all the local models have the same architecture with  $L$  layers).",
+        "bbox": [
+            81,
+            690,
+            478,
+            830
+        ],
+        "page_idx": 12
+    },
+    {
+        "type": "list",
+        "sub_type": "text",
+        "list_items": [
+            "-  $D_{\\mathrm{bias}}[i,j] = 1 - \\mathrm{cosine}(\\pmb{u}_{t + 1}^{i,K,[L]},\\pmb{u}_t^{j,K,[L]}),\\pmb{u}_{t + 1}^{i,K,[L]}$  is the update of the  $i$ -th local update in their last layers.",
+            "-  $D_{\\mathrm{conv}}[i,j] = ||\\pmb{w}_{t+1}^{i,K,[L]} - \\pmb{w}_t^{j,K,[L]}||$  is the Euclidean"
+        ],
+        "bbox": [
+            89,
+            834,
+            478,
+            890
+        ],
+        "page_idx": 12
+    },
+    {
+        "type": "text",
+        "text": "distance of the  $i$ -th and  $j$ -th local models' last layers  $\\boldsymbol{w}_{t+1}^{i,K,[L]}$  and  $\\boldsymbol{w}_t^{j,K,[L]}$",
+        "bbox": [
+            537,
+            68,
+            911,
+            101
+        ],
+        "page_idx": 12
+    },
+    {
+        "type": "text",
+        "text": "-  $D_{\\mathrm{prob}}[i,j] = ||\\bar{f}_{\\pmb{\\theta}^{i,K}}(\\mathbf{x}_{\\mathrm{rand}}) - \\bar{f}_{\\pmb{\\theta}^{j,K}}(\\mathbf{x}_{\\mathrm{rand}})||$  is the Euclidean distance of clients' output probabilities for the global random vectors.",
+        "bbox": [
+            524,
+            102,
+            911,
+            146
+        ],
+        "page_idx": 12
+    },
+    {
+        "type": "text",
+        "text": "After getting the three clustering result vectors  $Re_{\\mathrm{bias}}, Re_{\\mathrm{conv}}, Re_{\\mathrm{prob}} \\in \\mathbb{R}^K$  (For example,  $Re_{\\mathrm{bias}}[i]$  is the  $i$ -th local model's cluster label based on  $D_{\\mathrm{bias}}$ ), DeepSight defines a new distance matrix  $D_{\\mathrm{final}}$  as:",
+        "bbox": [
+            516,
+            148,
+            913,
+            205
+        ],
+        "page_idx": 12
+    },
+    {
+        "type": "equation",
+        "text": "\n$$\nD _ {\\text {f i n a l}} [ i, j ] = \\sum_ {r \\in R e s} \\mathbf {1} (r [ i ] = r [ j ]), \\tag {C.2}\n$$\n",
+        "text_format": "latex",
+        "bbox": [
+            616,
+            208,
+            911,
+            239
+        ],
+        "page_idx": 12
+    },
+    {
+        "type": "equation",
+        "text": "\n$$\nw h e r e R e s = \\left\\{R e _ {\\text {b i a s}}, R e _ {\\text {c o n v}}, R e _ {\\text {p r o b}} \\right\\}\n$$\n",
+        "text_format": "latex",
+        "bbox": [
+            589,
+            243,
+            841,
+            260
+        ],
+        "page_idx": 12
+    },
+    {
+        "type": "text",
+        "text": "DeepSight performs DBSCAN the last time according to  $D_{\\mathrm{final}}[i,j]$  and get  $Re_{\\mathrm{final}}$ . Based on  $Re_{\\mathrm{final}}$ , the cluster with potentially malicious clients more than a given proportion threshold would be excluded from the next round of aggregation.",
+        "bbox": [
+            516,
+            262,
+            913,
+            330
+        ],
+        "page_idx": 12
+    },
+    {
+        "type": "text",
+        "text": "CRFL (Xie et al. 2021) clips the training-time global model parameters  $\\text{Clip}_{\\rho_t}(\\pmb{\\theta}_t) = \\pmb{\\theta}_t / \\max \\left(1, \\frac{||\\pmb{\\theta}_t||}{\\rho_t}\\right)$  so that its norm is bounded by  $\\rho_t$ , and then add isotropic Gaussian noise  $\\widetilde{\\pmb{\\theta}}_t \\gets \\text{Clip}_{\\rho_t}(\\pmb{\\theta}_t) + \\epsilon_t$ , where  $\\epsilon_t \\sim \\mathcal{N}(0, \\sigma_t^2\\mathbf{I})$ . Aligned with the training time Gaussian noise (perturbing), CRFL adopts the same Gaussian smoothing measures  $\\mu(\\pmb{\\theta}) = \\mathcal{N}(\\pmb{\\theta}, \\sigma_T^2\\mathbf{I})$ $M$  times independently on the tested model, to get  $M$  sets of noisy model parameters, such that  $\\widetilde{\\pmb{\\theta}}_T^k \\gets \\text{Clip}_{\\rho_t}(\\pmb{\\theta}_t) + \\epsilon_t^k$ , runs the classifier with each set of noisy model parameters  $\\widetilde{\\pmb{\\theta}}_T^k$  for one test sample  $x_{test}$  to return its class counts, with which take the voted most probable class and its probability.",
+        "bbox": [
+            516,
+            330,
+            911,
+            497
+        ],
+        "page_idx": 12
+    },
+    {
+        "type": "text",
+        "text": "D Ablation Study",
+        "text_level": 1,
+        "bbox": [
+            630,
+            508,
+            797,
+            526
+        ],
+        "page_idx": 12
+    },
+    {
+        "type": "text",
+        "text": "In this section, we provide ablation studies towards our proposed F3BA method and study how various factors affect the ASR and ACC of our proposed attack. To eliminate the influence of random client participation, in this, section, we set a total of 10 participant clients with only 1 malicious client, and all the participants would be selected in each round. The data heterogeneity hyperparameter  $h = 1.0$  (Except when we investigate the effects of data heterogeneity). We do not set more clients or lower data heterogeneity because it would make it easier to achieve high ASR for F3BA with various parameter settings, which is not conducive for us to investigate the effects of various factors on the backdoor attack.",
+        "bbox": [
+            514,
+            527,
+            913,
+            695
+        ],
+        "page_idx": 12
+    },
+    {
+        "type": "text",
+        "text": "D.1 Attack with Different Trigger",
+        "text_level": 1,
+        "bbox": [
+            516,
+            704,
+            790,
+            719
+        ],
+        "page_idx": 12
+    },
+    {
+        "type": "text",
+        "text": "In our attack design, the malicious clients do not need to share the optimized trigger during training, instead, they optimize their own triggers when conducting the F3BA attack. During the test phase, we simply average all the optimized triggers as a global trigger and attached it to the test dataset for ASR evaluation. Note that even if we do not perform averaging but directly use one of the optimized triggers, the attack still works.",
+        "bbox": [
+            514,
+            720,
+            911,
+            830
+        ],
+        "page_idx": 12
+    },
+    {
+        "type": "text",
+        "text": "Table.4 shows the ASR of different triggers on CIFAR-10 and Tiny-Imagenet datasets. Note that whether using the average or local triggers does not have a major impact on the performance of F3BA on both datasets.",
+        "bbox": [
+            516,
+            832,
+            913,
+            888
+        ],
+        "page_idx": 12
+    },
+    {
+        "type": "table",
+        "img_path": "images/40cad099d4c1d504551a2118bd22a7d06231ac74cbed2fdefd670626f675c9b3.jpg",
+        "table_caption": [],
+        "table_footnote": [],
+        "table_body": "<table><tr><td>Tested Tigger</td><td>Round</td><td>CIFAR-10</td><td>Tiny-imagenet</td></tr><tr><td rowspan=\"2\">Averaged Trigger</td><td>50</td><td>97.97%</td><td>97.01%</td></tr><tr><td>100</td><td>99.23%</td><td>99.15%</td></tr><tr><td rowspan=\"2\">Local Trigger #1</td><td>50</td><td>98.03%</td><td>96.36%</td></tr><tr><td>100</td><td>99.49%</td><td>99.11%</td></tr><tr><td rowspan=\"2\">Local Trigger #2</td><td>50</td><td>98.57%</td><td>96.57%</td></tr><tr><td>100</td><td>99.49%</td><td>98.95%</td></tr><tr><td rowspan=\"2\">Local Trigger #3</td><td>50</td><td>97.87%</td><td>98.15%</td></tr><tr><td>100</td><td>98.35%</td><td>99.62%</td></tr><tr><td rowspan=\"2\">Local Trigger #4</td><td>50</td><td>98.84%</td><td>96.57%</td></tr><tr><td>100</td><td>98.41%</td><td>98.48%</td></tr></table>",
+        "bbox": [
+            93,
+            65,
+            470,
+            220
+        ],
+        "page_idx": 13
+    },
+    {
+        "type": "text",
+        "text": "D.2 Attack Other Network Architecture",
+        "text_level": 1,
+        "bbox": [
+            83,
+            284,
+            406,
+            300
+        ],
+        "page_idx": 13
+    },
+    {
+        "type": "text",
+        "text": "As mentioned in Section.2.2, the Focused Flip operations can be generally applied to any network structure that rely on the dot product, and be applied independently to boost the traditional training-based backdoor attack. We show the ASR/ACC of F3BA on attacking plain FedAvg with MLP models to verify the applicability of the F3BA attack on architectures beyond CNN. Table.5 suggests that F3BA is still highly effective on MLPs (and still better than the DBA baseline) without loss on the performance of its main task.",
+        "bbox": [
+            81,
+            304,
+            478,
+            431
+        ],
+        "page_idx": 13
+    },
+    {
+        "type": "table",
+        "img_path": "images/a6218793197048c147c413d650876ed13cc8ef0ca223295605db55d7378e5076.jpg",
+        "table_caption": [
+            "Table 4: ASR of F3BA and DBA attacks with the averaged global trigger and clients' local triggers against plain FedAvg."
+        ],
+        "table_footnote": [],
+        "table_body": "<table><tr><td rowspan=\"2\">Round</td><td colspan=\"2\">CIFAR-ACC</td><td colspan=\"2\">CIFAR-ASR</td><td colspan=\"2\">TinyImagenet -ACC</td><td colspan=\"2\">TinyImagenet -ASR</td></tr><tr><td>F3BA</td><td>DBA</td><td>F3BA</td><td>DBA</td><td>F3BA</td><td>DBA</td><td>F3BA</td><td>DBA</td></tr><tr><td>25</td><td>44.13%</td><td>44.57%</td><td>98.76%</td><td>87.21%</td><td>7.06%</td><td>7.02%</td><td>98.52%</td><td>89.54%</td></tr><tr><td>50</td><td>47.17%</td><td>47.26%</td><td>99.78%</td><td>93.30%</td><td>8.58%</td><td>8.87%</td><td>97.37%</td><td>86.35%</td></tr><tr><td>75</td><td>48.53%</td><td>49.13%</td><td>99.82%</td><td>91.55%</td><td>9.40%</td><td>9.50%</td><td>98.39%</td><td>90.39%</td></tr><tr><td>100</td><td>51.10%</td><td>50.99%</td><td>99.88%</td><td>93.68%</td><td>10.04%</td><td>10.00%</td><td>98.94%</td><td>93.54%</td></tr></table>",
+        "bbox": [
+            84,
+            444,
+            478,
+            531
+        ],
+        "page_idx": 13
+    },
+    {
+        "type": "text",
+        "text": "D.3 Attack with More Benign Clients",
+        "text_level": 1,
+        "bbox": [
+            83,
+            597,
+            383,
+            613
+        ],
+        "page_idx": 13
+    },
+    {
+        "type": "text",
+        "text": "We test F3BA on FedAvg with in total 100 clients, of which 4 are malicious. 40 clients are randomly selected for each round. When the number of malicious clients is fixed, the benign clients becomes more thus to some extent deterring the attack from both F3BA and DBA. As Table.6, we can observe that the advantages of F3BA over DBA still hold. When all the clients are randomly selected, the decreasing chances for malicious clients being selected do partially slows down the process of F3BA's evasion but not able to remove the injected backdoor. In this circumstance, F3BA still performs better than DBA. Stopping F3BA entirely by the number of benign clients would require potentially much more benign clients and fewer malicious clients.",
+        "bbox": [
+            81,
+            617,
+            480,
+            799
+        ],
+        "page_idx": 13
+    },
+    {
+        "type": "text",
+        "text": "D.4 Attack Sparsification-based Defense",
+        "text_level": 1,
+        "bbox": [
+            83,
+            811,
+            406,
+            828
+        ],
+        "page_idx": 13
+    },
+    {
+        "type": "text",
+        "text": "Besides 3 Model Refinement defense, 3 Robust Aggregation, and 1 certified Robustness in Section.3, we also explore the effect of SparseFed, a theoretical framework for analyzing the robustness of defenses against poisoning attacks.",
+        "bbox": [
+            81,
+            832,
+            478,
+            891
+        ],
+        "page_idx": 13
+    },
+    {
+        "type": "table",
+        "img_path": "images/d6a16883a46b91a9c1e51ae8c763a50ba5d5079c934b98fa4502e63a9e33290d.jpg",
+        "table_caption": [
+            "Table 5: ASR/ACC of F3BA and DBA with MLP network architecture against plain FedAvg."
+        ],
+        "table_footnote": [],
+        "table_body": "<table><tr><td rowspan=\"2\">Round</td><td colspan=\"2\">CIFAR-ACC</td><td colspan=\"2\">CIFAR-ASR</td><td colspan=\"2\">TinyImagenet -ACC</td><td colspan=\"2\">TinyImagenet -ASR</td></tr><tr><td>F3BA</td><td>DBA</td><td>F3BA</td><td>DBA</td><td>F3BA</td><td>DBA</td><td>F3BA</td><td>DBA</td></tr><tr><td>25</td><td>39.01%</td><td>38.10%</td><td>12.39%</td><td>10.12%</td><td>9.25%</td><td>9.64%</td><td>7.15%</td><td>4.72%</td></tr><tr><td>50</td><td>46.54%</td><td>45.93%</td><td>34.26%</td><td>20.27%</td><td>17.50%</td><td>17.23%</td><td>18.10%</td><td>9.27%</td></tr><tr><td>75</td><td>51.21%</td><td>50.95%</td><td>56.20%</td><td>25.55%</td><td>20.05%</td><td>20.66%</td><td>42.06%</td><td>15.20%</td></tr><tr><td>100</td><td>55.38%</td><td>55.60%</td><td>75.25%</td><td>24.36%</td><td>23.84%</td><td>24.20%</td><td>60.11%</td><td>30.05%</td></tr></table>",
+        "bbox": [
+            519,
+            66,
+            911,
+            151
+        ],
+        "page_idx": 13
+    },
+    {
+        "type": "text",
+        "text": "Since it is not specifically designed for the robustness towards backdoor attacks, we put the result in the supplementary as Table.7.",
+        "bbox": [
+            514,
+            217,
+            911,
+            258
+        ],
+        "page_idx": 13
+    },
+    {
+        "type": "text",
+        "text": "Based on the model architecture and task complexity, we set the number of accepted parameters  $K = 1e4$  for CNN and  $K = 4e5$  for ResNet-18 respectively. From the Table.7, we can observe that although SparseFed only allows a small fraction of aggregated parameters for global model updates at each round, it still can be backdoored by our F3BA.",
+        "bbox": [
+            514,
+            260,
+            913,
+            343
+        ],
+        "page_idx": 13
+    },
+    {
+        "type": "table",
+        "img_path": "images/9770eff703219b9259bb32915e01450d9fd8a5c86a6463344e3936b8267d3d4b.jpg",
+        "table_caption": [
+            "Table 6: ASR/ACC with more benign clients against plain FedAvg. 100 clients, 4 malicious."
+        ],
+        "table_footnote": [],
+        "table_body": "<table><tr><td rowspan=\"2\">Round</td><td colspan=\"2\">CIFAR</td><td colspan=\"2\">TinyImagenet</td></tr><tr><td>ACC</td><td>ASR</td><td>ACC</td><td>ASR</td></tr><tr><td>25</td><td>44.70%</td><td>76.75%</td><td>1.75%</td><td>9.64%</td></tr><tr><td>50</td><td>49.63%</td><td>90.51%</td><td>4.78%</td><td>49.56%</td></tr><tr><td>75</td><td>54.43%</td><td>99.30%</td><td>8.05%</td><td>87.21%</td></tr><tr><td>100</td><td>57.71%</td><td>99.75%</td><td>11.10%</td><td>82.77%</td></tr></table>",
+        "bbox": [
+            550,
+            357,
+            880,
+            476
+        ],
+        "page_idx": 13
+    },
+    {
+        "type": "text",
+        "text": "Table 7: ASR/ACC with against sparseFed FedAvg. 20 clients, 4 malicious.",
+        "bbox": [
+            514,
+            484,
+            911,
+            513
+        ],
+        "page_idx": 13
+    },
+    {
+        "type": "text",
+        "text": "We conjecture that the sparsity criterion cannot rule out all the backdoor-related model parameters as our attack does not necessarily lead to an update that is small in magnitude.",
+        "bbox": [
+            514,
+            531,
+            911,
+            574
+        ],
+        "page_idx": 13
+    },
+    {
+        "type": "text",
+        "text": "D.5 Effect of Data Heterogeneity",
+        "text_level": 1,
+        "bbox": [
+            514,
+            585,
+            784,
+            602
+        ],
+        "page_idx": 13
+    },
+    {
+        "type": "text",
+        "text": "We study how data heterogeneity would affect the attack of F3BA. We manually adjust the concentration hyperparameter  $h$  to split non-i.i.d dataset.(The larger the  $h$ , the more i.i.d the data is distributed). On the two datasets, the ASR both grows when the  $h$  becomes smaller, and the ACC decreases at the same time. The result shows that lower  $h$  strongly hurts the accuracy of the global model but gives convenience to the backdoor attack.",
+        "bbox": [
+            514,
+            604,
+            913,
+            715
+        ],
+        "page_idx": 13
+    },
+    {
+        "type": "text",
+        "text": "D.6 Effect of The Proportion of Candidate Parameters",
+        "text_level": 1,
+        "bbox": [
+            514,
+            728,
+            856,
+            758
+        ],
+        "page_idx": 13
+    },
+    {
+        "type": "text",
+        "text": "In our experiments, we find that different proportions of candidate parameters should be used for the different parts of a neural network in order to achieve a better attack. To valid this, we conducted a grid search on CIFAR-10 for ACC and ASR at the  $20^{\\mathrm{th}}$  round. Based on the result in Figure 13, moderately scaling up the candidate parameters rate (e.g. from 0.02 to 0.05) in fully-connected layers would increase the ASR without the loss of ACC. Meanwhile, too high candidate parameters proportion for fully-connected layers can",
+        "bbox": [
+            514,
+            762,
+            913,
+            888
+        ],
+        "page_idx": 13
+    },
+    {
+        "type": "image",
+        "img_path": "images/c36dbe9110b6ebff0fc578b25091325f02b0c1f336a9b8227b7eb34726376b83.jpg",
+        "image_caption": [
+            "Figure 11: Attack success rate and accuracy against FedAvg under different data heterogeneity  $h$ ."
+        ],
+        "image_footnote": [],
+        "bbox": [
+            107,
+            66,
+            454,
+            196
+        ],
+        "page_idx": 14
+    },
+    {
+        "type": "text",
+        "text": "cause an obvious loss of ASR. Intuitively, the parameters of the convolutional part are more sparse than the fully-connected part and therefore can be selected with a higher candidate parameter proportion. Similarly, fully-connected layers indeed involve more parameters, and thus only require a smaller candidate parameter proportion. According to our practice, a sound choice for attackers is to set the proportions for convolutional layers and fully-connected layers respectively below  $5\\%$  and  $1\\%$ .",
+        "bbox": [
+            81,
+            265,
+            478,
+            391
+        ],
+        "page_idx": 14
+    },
+    {
+        "type": "image",
+        "img_path": "images/6c826660efc9a0be5cac78eb38a419a3cdafdec8c9af88b73a0ac45a760788d2.jpg",
+        "image_caption": [
+            "Figure 12: Attack success rate and accuracy with different candidate parameter proportion for convolutional layers and fully-connected layers on CIFAR-10 dataset."
+        ],
+        "image_footnote": [],
+        "bbox": [
+            99,
+            405,
+            465,
+            527
+        ],
+        "page_idx": 14
+    },
+    {
+        "type": "text",
+        "text": "D.7 Effect of Local Training",
+        "text_level": 1,
+        "bbox": [
+            83,
+            611,
+            316,
+            628
+        ],
+        "page_idx": 14
+    },
+    {
+        "type": "image",
+        "img_path": "images/660c818fe4ce4ac50c5ca554ad446514687f94d402fa1e0bacb270bbdc064852.jpg",
+        "image_caption": [
+            "Figure 13: Attack success rate and accuracy against FedAvg under different data heterogeneity  $h$ ."
+        ],
+        "image_footnote": [],
+        "bbox": [
+            112,
+            646,
+            444,
+            773
+        ],
+        "page_idx": 14
+    },
+    {
+        "type": "text",
+        "text": "As discussed in Section 2.1, local training is still a must for the effects of F3BA, while simply flipping without training can not induce activation led by the trigger to the targeted label. We further discover how the order of local training and",
+        "bbox": [
+            81,
+            832,
+            480,
+            891
+        ],
+        "page_idx": 14
+    },
+    {
+        "type": "text",
+        "text": "Focused Flip would affect our attack. Based on the results on CIFAR-10 and Tiny Imagenet, the flipping-training-pipeline can achieve better ASR than the flip-training one. It also ensures a slightly higher ACC. The significant difference of ASR on attacking Tiny Imagenet dataset for two pipelines also suggests that training a local model to bridge the sudden changes in model weights caused by focused flip can be of benefit to the effectiveness of the attack.",
+        "bbox": [
+            514,
+            68,
+            913,
+            180
+        ],
+        "page_idx": 14
+    }
+]

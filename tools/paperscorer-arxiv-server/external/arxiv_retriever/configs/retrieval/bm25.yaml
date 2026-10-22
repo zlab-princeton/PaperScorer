@@ -1,0 +1,22 @@
+server:
+  port: 8000
+  faiss_gpu: false
+  topk: 5
+
+retriever:
+  name: bm25
+  # BM25 doesn't use a neural encoder; pyserini's lucene tokenizer
+  # (DefaultLuceneDocumentGenerator: lowercase + Porter stemmer + English
+  # stopwords) is used at index time. The fields below are read by the
+  # generic Config dataclass but unused by BM25Retriever.
+  model_path: ""
+  pooling_method: mean
+  query_max_length: 256
+  use_fp16: false
+
+index:
+  # Lucene BM25 index built by arxiv_retriever/sbatch/build_bm25_index.sbatch
+  # over arxiv_wikiformat.jsonl.
+  path: /scratch/gpfs/ZHUANGL/sk7524/arxiv_bm25_index
+  corpus_path: /scratch/gpfs/ZHUANGL/sk7524/SkyRL/skyrl-train/data/searchr1_original/arxiv/arxiv_wikiformat.jsonl
+  arxiv_metadata_path: /scratch/gpfs/ZHUANGL/sk7524/SkyRL/skyrl-train/data/searchr1_original/arxiv/arxiv-metadata-oai-snapshot.jsonl

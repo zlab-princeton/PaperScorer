@@ -1,0 +1,22 @@
+server:
+  port: 8000
+  faiss_gpu: false
+  topk: 5
+
+retriever:
+  name: bm25
+  model_path: ""
+  pooling_method: mean
+  query_max_length: 256
+  use_fp16: false
+
+index:
+  # Lucene BM25 index built over the per_venue subset (~83K papers from
+  # arxiv_50_50_balanced_per_venue_text_wmetadata_filtered24480_{train,val,test}).
+  path: /scratch/gpfs/ZHUANGL/sk7524/arxiv_bm25_per_venue_index
+  # Corpus path / metadata path are unused by BM25 retrieval (lucene stores
+  # docids = arxiv_ids and content directly), but the metadata is loaded for
+  # the author-search fallback path. Keep pointing at the full files so we
+  # don't have to subset metadata too.
+  corpus_path: /scratch/gpfs/ZHUANGL/sk7524/SkyRL/skyrl-train/data/searchr1_original/arxiv/arxiv_wikiformat.jsonl
+  arxiv_metadata_path: /scratch/gpfs/ZHUANGL/sk7524/SkyRL/skyrl-train/data/searchr1_original/arxiv/arxiv-metadata-oai-snapshot.jsonl
