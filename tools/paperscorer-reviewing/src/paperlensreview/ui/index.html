@@ -1,0 +1,1812 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>PaperLens Reviewing</title>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<style>
+  :root {
+    --bg: #fafaf7;
+    --fg: #232323;
+    --muted: #767676;
+    --accent: #1f6feb;
+    --accept: #1a7f37;
+    --reject: #cf222e;
+    --bar-bg: #e6e6e0;
+    --bar-fill: #1f6feb;
+    --err: #cf222e;
+    --card-bd: #d0d7de;
+    --code-bg: #f4f4ee;
+    --hover-bg: #eef2f7;
+    --selected-bg: rgba(31,111,235,0.12);
+  }
+  * { box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    background: var(--bg); color: var(--fg);
+    margin: 0; padding: 0;
+  }
+  .wrap { max-width: 720px; margin: 60px auto; padding: 0 24px; transition: max-width 200ms ease; }
+  .wrap.wide { max-width: 1320px; }
+  h1 { font-size: 28px; margin: 0 0 8px 0; font-weight: 600; }
+  p.sub { color: var(--muted); margin: 0 0 24px 0; }
+  .card {
+    background: #fff; border: 1px solid var(--card-bd); border-radius: 8px;
+    padding: 20px; margin-bottom: 16px;
+  }
+  .upload {
+    display: flex; gap: 12px; align-items: center;
+  }
+  .upload input[type="file"] { flex: 1; }
+  button {
+    background: var(--accent); color: #fff; border: none; border-radius: 6px;
+    padding: 9px 16px; font-size: 14px; cursor: pointer; font-weight: 500;
+  }
+  button:disabled { opacity: 0.55; cursor: not-allowed; }
+  .stages { display: flex; gap: 8px; margin: 24px 0 14px 0; }
+  .stage {
+    flex: 1; text-align: center; padding: 8px 4px;
+    border: 1px solid var(--card-bd); border-radius: 6px;
+    font-size: 12px; color: var(--muted); background: #fff;
+    transition: all 150ms ease;
+  }
+  .stage.active {
+    color: var(--accent); border-color: var(--accent); font-weight: 600;
+    background: rgba(31,111,235,0.06);
+  }
+  .stage.done {
+    color: var(--accept); border-color: var(--accept);
+    background: rgba(26,127,55,0.06);
+  }
+  .bar {
+    width: 100%; height: 8px; background: var(--bar-bg); border-radius: 4px;
+    overflow: hidden;
+  }
+  .bar > div {
+    height: 100%; background: var(--bar-fill);
+    transition: width 250ms ease;
+  }
+  .verdict {
+    display: flex; align-items: center; gap: 12px;
+    padding: 16px; border-radius: 8px; border: 1px solid var(--card-bd);
+    margin-top: 12px;
+  }
+  .verdict.accept { background: rgba(26,127,55,0.06); border-color: var(--accept); }
+  .verdict.reject { background: rgba(207,34,46,0.06); border-color: var(--reject); }
+  .verdict h2 { margin: 0; font-size: 22px; font-weight: 600; }
+  .verdict.accept h2 { color: var(--accept); }
+  .verdict.reject h2 { color: var(--reject); }
+  .verdict .p { font-size: 14px; color: var(--muted); margin: 4px 0 0 0; }
+  .err {
+    background: rgba(207,34,46,0.07); border: 1px solid var(--reject);
+    padding: 12px; border-radius: 6px; color: var(--err);
+    white-space: pre-wrap; font-family: monospace; font-size: 13px;
+  }
+  .meta { color: var(--muted); font-size: 12px; margin-top: 10px; }
+  details { margin-top: 12px; }
+  details summary { cursor: pointer; color: var(--muted); font-size: 13px; }
+  details pre { background: var(--code-bg); padding: 10px; border-radius: 4px; overflow-x: auto; font-size: 12px; }
+
+  /* ----- post-result tabs / explorer / payload ----- */
+  .tabs {
+    display: flex; gap: 4px; border-bottom: 1px solid var(--card-bd);
+    margin: 0 -20px 16px -20px; padding: 0 20px;
+  }
+  .tab {
+    background: transparent; color: var(--muted); border: none;
+    padding: 10px 16px; font-size: 14px; cursor: pointer;
+    border-bottom: 2px solid transparent; border-radius: 0;
+    margin-bottom: -1px;
+  }
+  .tab.active {
+    color: var(--accent); border-bottom-color: var(--accent); font-weight: 600;
+  }
+  .tab:hover:not(.active) { color: var(--fg); background: var(--hover-bg); }
+  .pane { display: none; }
+  .pane.active { display: block; }
+
+  .explorer { display: grid; grid-template-columns: 320px 1fr; gap: 0; min-height: 520px; }
+  .explorer-tree {
+    border-right: 1px solid var(--card-bd);
+    padding-right: 12px; overflow-y: auto;
+    max-height: 720px;
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 12px;
+  }
+  .explorer-tree .root-label {
+    font-weight: 600; color: var(--accent); margin: 8px 0 4px 0;
+    font-family: -apple-system, sans-serif;
+  }
+  .tree-node {
+    cursor: pointer; padding: 2px 6px; border-radius: 3px;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    display: block;
+  }
+  .tree-node:hover { background: var(--hover-bg); }
+  .tree-node.selected { background: var(--selected-bg); color: var(--accent); font-weight: 600; }
+  .tree-node.dir { color: var(--fg); }
+  .tree-node.file { color: var(--muted); }
+  .tree-node.truncated { color: var(--reject); font-style: italic; }
+  .tree-children { margin-left: 14px; border-left: 1px dashed var(--card-bd); padding-left: 6px; }
+  .explorer-view {
+    padding-left: 16px; overflow: auto;
+    max-height: 720px;
+  }
+  .explorer-view .empty { color: var(--muted); font-size: 13px; margin-top: 20px; }
+  .explorer-view img { max-width: 100%; height: auto; border: 1px solid var(--card-bd); border-radius: 4px; }
+  .explorer-view iframe { width: 100%; height: 680px; border: 1px solid var(--card-bd); border-radius: 4px; }
+  .explorer-view pre {
+    background: var(--code-bg); padding: 12px; border-radius: 4px;
+    overflow: auto; font-size: 12px; white-space: pre-wrap; word-break: break-word;
+    max-height: 680px;
+  }
+  .filename-bar {
+    font-family: ui-monospace, monospace; font-size: 11px;
+    color: var(--muted); margin-bottom: 8px; padding-bottom: 6px;
+    border-bottom: 1px dashed var(--card-bd);
+    word-break: break-all;
+  }
+  .filename-bar .name { color: var(--fg); font-weight: 600; }
+
+  .payload-section { margin-bottom: 18px; }
+  .payload-section h3 { font-size: 13px; margin: 0 0 6px 0; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; }
+  .payload-section pre {
+    background: var(--code-bg); padding: 12px; border-radius: 4px;
+    font-size: 12px; white-space: pre-wrap; word-break: break-word;
+    max-height: 320px; overflow: auto;
+  }
+  .image-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 8px; }
+  .image-grid figure { margin: 0; }
+  .image-grid img { width: 100%; height: 140px; object-fit: contain; background: var(--code-bg); border: 1px solid var(--card-bd); border-radius: 4px; }
+  .image-grid figcaption { font-size: 11px; color: var(--muted); text-align: center; margin-top: 2px; }
+
+  /* ----- input mode toggle + latex form ----- */
+  .mode-toggle { display: flex; gap: 4px; margin-bottom: 14px; }
+  .mode-btn {
+    background: transparent; color: var(--muted); border: 1px solid var(--card-bd);
+    border-radius: 6px; padding: 7px 14px; font-size: 13px; font-weight: 500;
+  }
+  .mode-btn.active { background: rgba(31,111,235,0.08); color: var(--accent); border-color: var(--accent); }
+  .mode-pane { display: none; }
+  .mode-pane.active { display: block; }
+  .latex-row { display: flex; gap: 10px; align-items: center; }
+  .latex-row input[type="text"] {
+    flex: 1; padding: 8px 10px; border: 1px solid var(--card-bd); border-radius: 6px;
+    font-family: ui-monospace, monospace; font-size: 13px;
+  }
+  .latex-field { margin-top: 12px; display: flex; gap: 8px; align-items: center; font-size: 13px; color: var(--muted); }
+  .latex-field input[type="text"] {
+    flex: 1; padding: 6px 9px; border: 1px solid var(--card-bd); border-radius: 6px;
+    font-family: ui-monospace, monospace; font-size: 12px;
+  }
+  .git-controls { margin-top: 14px; padding-top: 12px; border-top: 1px dashed var(--card-bd); }
+  .git-controls .opt { display: inline-flex; gap: 5px; align-items: center; margin-right: 18px; font-size: 13px; cursor: pointer; }
+  .git-note { color: var(--muted); font-size: 12px; margin: 6px 0 0 0; }
+
+  /* ----- commit churn graph (history selection) -----
+     Layout: a 2-column grid [row labels | scrollable commit columns].
+     Each commit column has 5 fixed-height rows so the labels align. */
+  .commit-graph-wrap { margin-top: 12px; }
+  .commit-graph-explainer {
+    font-size: 11px; color: var(--muted); margin: 0 0 8px 0; line-height: 1.5;
+  }
+  .commit-graph-explainer code { font-size: 11px; }
+  .commit-graph-grid {
+    display: grid; grid-template-columns: auto 1fr; gap: 8px;
+    border: 1px solid var(--card-bd); border-radius: 6px;
+    background: var(--code-bg); padding: 8px 4px;
+  }
+  .commit-row-labels {
+    display: flex; flex-direction: column; align-items: flex-end;
+    padding-right: 8px; font-size: 10px; color: var(--muted);
+    border-right: 1px dashed var(--card-bd);
+  }
+  .commit-row-labels .rl {
+    display: flex; align-items: center; justify-content: flex-end;
+    white-space: nowrap;
+  }
+  .commit-row-labels .rl.bar    { height: 122px; align-items: flex-end; padding-bottom: 4px; }
+  .commit-row-labels .rl.sha    { height: 14px; font-family: ui-monospace, monospace; color: var(--fg); }
+  .commit-row-labels .rl.date   { height: 14px; }
+  .commit-row-labels .rl.churn  { height: 14px; }
+  .commit-row-labels .rl.chk    { height: 22px; padding-top: 4px; }
+  .commit-graph { display: flex; gap: 6px; align-items: flex-end; overflow-x: auto; }
+  /* Percentile slider sits between the explainer and the graph -- drag to
+     retune which commits are pre-checked (recomputed client-side). */
+  .pct-control {
+    display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+    font-size: 12px; color: var(--muted); margin: 6px 0 10px 0;
+  }
+  .pct-control input[type="range"] { flex: 1; min-width: 180px; max-width: 380px; height: 4px; }
+  .pct-control b { color: var(--fg); }
+  .pct-control .pct-info code { background: var(--code-bg); padding: 1px 5px; border-radius: 3px; font-size: 11px; }
+  .commit-col {
+    display: flex; flex-direction: column; align-items: center;
+    min-width: 56px; flex: 0 0 auto; line-height: 1.25;
+  }
+  .commit-bar-area { height: 122px; display: flex; align-items: flex-end; width: 100%; justify-content: center; }
+  .commit-bar { width: 26px; background: var(--bar-bg); border-radius: 3px 3px 0 0; cursor: pointer; transition: background 120ms ease; min-height: 2px; }
+  .commit-bar.sel { background: var(--bar-fill); }
+  .commit-col .c-sha   { height: 14px; font-size: 10px; font-family: ui-monospace, monospace; color: var(--fg); }
+  .commit-col .c-date  { height: 14px; font-size: 10px; color: var(--muted); }
+  .commit-col .c-churn { height: 14px; font-size: 10px; color: var(--muted); }
+  .commit-col .c-chk   { height: 22px; padding-top: 4px; }
+  .commit-col input[type="checkbox"] { cursor: pointer; }
+  .graph-legend { font-size: 11px; color: var(--muted); margin-top: 8px; display: flex; gap: 16px; flex-wrap: wrap; }
+  .sel-count { font-weight: 600; color: var(--accent); }
+
+  /* ----- trajectory result (SVG line + EMA + tile preview) ----- */
+  .traj-card { padding: 18px; }
+  /* Chart on the left, panel-tile preview on the right. The right rail
+     swaps in the clicked commit's panel.png. */
+  .traj-grid {
+    display: grid; grid-template-columns: minmax(0, 1fr) 360px; gap: 16px;
+    align-items: start; margin-top: 10px;
+  }
+  @media (max-width: 1100px) {
+    /* Below 1100px (mobile / narrow tunnels), stack: chart on top, tile below. */
+    .traj-grid { grid-template-columns: 1fr; }
+  }
+  .traj-tile-wrap {
+    border: 1px solid var(--card-bd); border-radius: 6px; padding: 10px;
+    background: #fff; max-height: 480px; overflow: auto;
+  }
+  .traj-tile-empty { color: var(--muted); font-size: 12px; text-align: center; padding: 24px 8px; }
+  .traj-tile-head  { font-size: 11px; color: var(--muted); margin: 0 0 6px 0; line-height: 1.4; }
+  .traj-tile-head .sha { font-family: ui-monospace, monospace; color: var(--fg); font-weight: 600; }
+  .traj-tile-img { display: block; width: 100%; height: auto; border-radius: 4px; }
+  .traj-chart-wrap { overflow-x: auto; padding: 6px 4px; }
+  .traj-svg { display: block; min-width: 100%; }
+  .traj-line       { fill: none; stroke: var(--accent); stroke-width: 2; }
+  .traj-line-ema   { fill: none; stroke: #c084fc; stroke-width: 2; stroke-dasharray: 4 3; opacity: 0.85; }
+  .traj-thresh-svg { stroke: var(--muted); stroke-dasharray: 4 4; stroke-width: 1; }
+  .traj-axis       { stroke: var(--card-bd); stroke-width: 1; }
+  .traj-tick       { fill: var(--muted); font-size: 9px; }
+  .traj-point      { stroke: white; stroke-width: 1.5; cursor: pointer; transition: r 120ms ease; }
+  .traj-point:hover   { r: 7; }
+  .traj-point.accept  { fill: var(--accept); }
+  .traj-point.reject  { fill: var(--reject); }
+  .traj-point.failed  { fill: var(--card-bd); cursor: default; }
+  .traj-xtick { font-size: 9px; fill: var(--muted); font-family: ui-monospace, monospace; }
+  .traj-legend { font-size: 11px; color: var(--muted); margin-top: 8px; display: flex; gap: 16px; flex-wrap: wrap; }
+  .traj-legend .swatch { display: inline-block; width: 10px; height: 10px; border-radius: 50%; vertical-align: middle; margin-right: 4px; }
+  .traj-legend .sw-line { background: var(--accent); }
+  .traj-legend .sw-ema  { background: #c084fc; }
+  .commit-drilldown { margin-top: 14px; }
+  .commit-drill-card { padding: 16px; }
+  .drill-header { font-size: 12px; color: var(--muted); margin: 0 0 10px 0; }
+  .drill-header .sha   { font-family: ui-monospace, monospace; color: var(--fg); font-weight: 600; margin-right: 8px; }
+  .drill-header .date  { margin-right: 10px; }
+  .drill-header .subject { color: var(--fg); }
+
+  /* ----- try-me example blocks (per-tab <details>) ----- */
+  .example-details {
+    margin-top: 14px; padding-top: 12px;
+    border-top: 1px dashed var(--card-bd);
+    font-size: 12px; color: var(--muted);
+  }
+  .example-details summary {
+    cursor: pointer; color: var(--accent); font-weight: 500;
+    list-style: none; padding: 2px 0;
+  }
+  .example-details summary::before { content: "▶ "; font-size: 10px; }
+  .example-details[open] summary::before { content: "▼ "; }
+  .example-body { margin-top: 8px; line-height: 1.55; }
+  .example-body code { background: var(--code-bg); padding: 1px 5px; border-radius: 3px; font-size: 11px; }
+  .example-body pre {
+    background: var(--code-bg); padding: 9px 12px; border-radius: 4px;
+    font-size: 11px; line-height: 1.5; overflow-x: auto;
+    margin: 6px 0;
+  }
+  .example-body a { color: var(--accent); text-decoration: none; }
+  .example-body a:hover { text-decoration: underline; }
+  /* "Run this example" button -- bundled MAE asset shortcut per tab. */
+  .example-run { margin-top: 10px; display: flex; align-items: center; gap: 10px; }
+  .example-run button { padding: 6px 14px; font-size: 12px; cursor: pointer;
+                        background: var(--accept); color: #fff; border: 1px solid var(--accept);
+                        border-radius: 4px; font-weight: 600; }
+  .example-run button:hover:not(:disabled) { filter: brightness(1.08); }
+  .example-run button:disabled { background: var(--muted); border-color: var(--muted);
+                                 cursor: not-allowed; opacity: 0.7; }
+  .example-run .note { color: var(--muted); font-size: 11px; }
+
+  /* ----- server-side folder browser ----- */
+  .latex-row input[readonly] { background: var(--code-bg); color: var(--fg); cursor: default; }
+  .dir-browser {
+    margin-top: 10px; border: 1px solid var(--card-bd); border-radius: 6px;
+    background: #fff; padding: 10px; max-height: 340px; overflow: auto;
+  }
+  .db-cur {
+    font-family: ui-monospace, monospace; font-size: 12px; color: var(--fg);
+    margin-bottom: 6px; padding: 6px 8px; width: 100%;
+    border: 1px solid var(--card-bd); border-radius: 4px; background: #fff;
+  }
+  .db-cur:focus { outline: 2px solid var(--accent); outline-offset: -1px; }
+  .db-bookmarks { display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 8px; }
+  .db-bookmark {
+    font-size: 11px; padding: 3px 8px; cursor: pointer;
+    border: 1px solid var(--card-bd); border-radius: 12px;
+    background: var(--code-bg); color: var(--muted);
+  }
+  .db-bookmark:hover { color: var(--accent); border-color: var(--accent); }
+  .db-actions { display: flex; gap: 8px; margin-bottom: 10px; }
+  .db-actions button { font-size: 12px; padding: 5px 10px; }
+  .db-up, .db-cancel { background: #fff; color: var(--fg); border: 1px solid var(--card-bd); }
+  .db-use { background: var(--accent); color: #fff; }
+  .db-list { display: flex; flex-direction: column; gap: 2px; }
+  .db-item { cursor: pointer; padding: 4px 8px; border-radius: 4px; font-size: 13px; }
+  .db-item:hover { background: var(--hover-bg); }
+  .db-empty { color: var(--muted); font-size: 12px; padding: 6px; }
+  .tag-git { color: var(--accent); font-size: 11px; font-weight: 600; }
+  .tag-tex { color: var(--accept); font-size: 11px; font-weight: 600; }
+
+  /* ----- lock the input card while a job runs ----- */
+  .card.locked { pointer-events: none; opacity: 0.55; }
+
+  /* ----- agentic review toggle (PDF + arxiv tabs) ----- */
+  .agent-toggle { margin-top: 14px; padding-top: 12px; border-top: 1px dashed var(--card-bd);
+                  display: flex; align-items: center; gap: 14px; font-size: 13px; }
+  .agent-toggle .label { font-weight: 600; color: var(--fg); }
+  .agent-toggle .opt { display: inline-flex; align-items: center; gap: 6px; cursor: pointer; }
+  .agent-toggle .opt.disabled { color: var(--muted); cursor: not-allowed; }
+  .agent-toggle .probe-info { font-size: 11px; color: var(--muted); }
+
+  /* ----- two-panel chat transcript for agent_review stage ----- */
+  .agent-chats { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 14px; }
+  .agent-chat-card { border: 1px solid var(--card-bd); border-radius: 6px; background: #fafafa;
+                     display: flex; flex-direction: column; max-height: 540px; }
+  .agent-chat-head { padding: 8px 12px; border-bottom: 1px solid var(--card-bd);
+                     display: grid; grid-template-columns: 1fr auto 1fr; align-items: center;
+                     gap: 10px; font-size: 12px; background: #fff; text-align: center; }
+  .agent-chat-title { font-weight: 600; grid-column: 2; text-align: center; }
+  .agent-chat-state { grid-column: 3; justify-self: end; }
+  .agent-chat-state { font-size: 11px; padding: 2px 8px; border-radius: 10px;
+                      background: var(--hover-bg); color: var(--muted); }
+  .agent-chat-state.running { background: #fff3cd; color: #856404; }
+  .agent-chat-state.done    { background: #d4edda; color: #155724; }
+  .agent-chat-state.error   { background: #f8d7da; color: #721c24; }
+  .agent-chat-body { flex: 1; overflow-y: auto; padding: 10px 12px;
+                     font-size: 12px; line-height: 1.45; }
+  .agent-msg { margin-bottom: 10px; }
+  /* Assistant turns get a soft tinted card so the model's running narration
+     visually pops out from the dense monospace tool I/O. */
+  .agent-msg.assistant { padding: 8px 10px; background: #f0f7ff;
+                         border-left: 3px solid var(--accent); border-radius: 0 4px 4px 0; }
+  .agent-msg.assistant pre { color: #0b3d6e; }
+  .agent-msg .role { font-weight: 700; color: var(--accent); font-size: 10px;
+                     text-transform: uppercase; letter-spacing: 0.6px; }
+  .agent-msg pre { white-space: pre-wrap; font-family: inherit; margin: 4px 0; }
+  .agent-tool { border-left: 3px solid var(--accent); background: #fff;
+                padding: 6px 8px; margin: 6px 0; border-radius: 0 4px 4px 0; }
+  .agent-tool .tool-name { font-weight: 600; font-size: 11px; color: var(--accent);
+                           font-family: monospace; }
+  .agent-tool .tool-args { font-family: monospace; font-size: 11px; color: var(--muted);
+                           white-space: pre-wrap; word-break: break-all; max-height: 120px;
+                           overflow-y: auto; margin-top: 3px; }
+  .agent-tool .tool-result { font-family: monospace; font-size: 11px; color: #444;
+                             background: var(--hover-bg); padding: 4px 6px; margin-top: 4px;
+                             border-radius: 3px; max-height: 160px; overflow-y: auto;
+                             white-space: pre-wrap; }
+  .agent-tool .tool-result.error { color: #721c24; background: #f8d7da; }
+  .agent-status { font-size: 11px; color: var(--muted); font-style: italic; margin: 4px 0; }
+
+  /* ----- Final review card (rendered after the agent's "Done: <sid>") ----- */
+  /* Sits at the bottom of each chat body. Distinct from the assistant
+     emphasis (which is blue) -- accept = green, reject = red, with the same
+     palette as the main verdict card so the parallel between PaperLens and
+     the agent is visually obvious. */
+  .agent-review { margin-top: 14px; border-radius: 6px; overflow: hidden;
+                  border: 2px solid var(--card-bd); }
+  .agent-review.accept { border-color: var(--accept); }
+  .agent-review.reject { border-color: var(--reject); }
+  .agent-review.fail   { border-color: #c82333; }
+  .agent-review-banner { padding: 12px 14px; display: flex; align-items: center;
+                         gap: 14px; font-size: 13px; }
+  .agent-review.accept .agent-review-banner { background: #d4edda; color: #155724; }
+  .agent-review.reject .agent-review-banner { background: #f8d7da; color: #721c24; }
+  .agent-review.fail   .agent-review-banner { background: #f8d7da; color: #721c24; }
+  .agent-review-banner .decision { font-size: 18px; font-weight: 800; letter-spacing: 0.4px;
+                                   text-transform: uppercase; }
+  .agent-review-banner .rating { font-size: 14px; font-weight: 600; opacity: 0.85; }
+  .agent-review-banner .elapsed { font-size: 11px; opacity: 0.7; margin-left: auto; }
+  .agent-review-scores { display: grid; grid-template-columns: repeat(4, 1fr);
+                         padding: 8px 14px; gap: 8px; background: #fff;
+                         border-top: 1px solid var(--card-bd); border-bottom: 1px solid var(--card-bd);
+                         font-size: 11px; }
+  .agent-review-score { display: flex; flex-direction: column; align-items: center;
+                        padding: 4px 6px; background: var(--hover-bg); border-radius: 4px; }
+  .agent-review-score .label { color: var(--muted); text-transform: uppercase;
+                               letter-spacing: 0.4px; font-size: 10px; }
+  .agent-review-score .value { font-size: 16px; font-weight: 700; color: var(--fg); }
+  .agent-review-sections { padding: 10px 14px; background: #fff; font-size: 12px;
+                           line-height: 1.5; }
+  .agent-review-sections h4 { margin: 8px 0 4px 0; font-size: 11px;
+                              text-transform: uppercase; letter-spacing: 0.5px;
+                              color: var(--accent); }
+  .agent-review-sections .field { white-space: pre-wrap; color: var(--fg);
+                                  margin: 0 0 8px 0; }
+  .agent-review-sections .field.muted { color: var(--muted); font-style: italic; }
+  /* Fallback for runs that ended without a parseable predictions.json. */
+  .agent-final-fail { margin-top: 14px; padding: 10px 14px; background: #f8d7da;
+                      color: #721c24; border-radius: 4px; border-left: 4px solid #c82333;
+                      font-size: 12px; }
+</style>
+</head>
+<body>
+<div class="wrap" id="wrap">
+
+<h1>PaperLens Reviewing</h1>
+<p class="sub">Score a paper's predicted acceptance probability — upload a PDF, or point at a local LaTeX source dir (optionally across its git history).</p>
+
+<div class="card" id="input-card">
+  <div class="mode-toggle">
+    <button class="mode-btn active" data-mode="pdf">PDF upload</button>
+    <button class="mode-btn" data-mode="latex">LaTeX source dir</button>
+    <button class="mode-btn" data-mode="arxiv">arXiv link</button>
+  </div>
+
+  <div class="mode-pane active" id="mode-pdf">
+    <div class="upload">
+      <input type="file" id="pdf" accept="application/pdf" />
+      <button id="submit">Submit</button>
+    </div>
+    <div class="agent-toggle" data-tab="pdf">
+      <span class="label">Run agentic review after decision:</span>
+      <label class="opt"><input type="radio" name="agent-pdf" value="" checked> Off</label>
+      <label class="opt"><input type="radio" name="agent-pdf" value="claude"> Claude Code</label>
+      <label class="opt"><input type="radio" name="agent-pdf" value="codex"> Codex</label>
+      <span class="probe-info" data-probe="pdf"></span>
+    </div>
+    <details class="example-details">
+      <summary>Try-me example: <b>MAE</b> (arXiv 2111.06377)</summary>
+      <div class="example-body">
+        PaperLens was trained on anonymized inputs, so drop in a paper PDF whose authors / affiliations are blinded. The bundled example is an anonymized MAE PDF that lives at <code>example_assets/mae/mae_anonymized.pdf</code> — click <b>Run example</b> to submit it. To upload your own:
+        <pre>curl -L https://arxiv.org/pdf/2111.06377 -o mae.pdf</pre>
+        Note that the de-anonymized arXiv copy will still score, but the bundled anonymized version is what gives you a calibrated number aligned with the paper.
+        <div class="example-run">
+          <button data-run="pdf" disabled>Run example (anonymized MAE PDF)</button>
+          <span class="note" data-run-note="pdf"></span>
+        </div>
+      </div>
+    </details>
+  </div>
+
+  <div class="mode-pane" id="mode-latex">
+    <div class="latex-row">
+      <input type="text" id="latex-path" placeholder="(no folder selected — click Browse)" readonly />
+      <button id="browse">Browse…</button>
+    </div>
+    <div id="dir-browser" class="dir-browser" style="display:none"></div>
+    <div id="latex-detail" style="display:none">
+      <div class="latex-field">
+        <span>Entrypoint:</span>
+        <input type="text" id="main-tex" placeholder="auto-detect (e.g. main.tex)" />
+      </div>
+      <div id="git-controls" class="git-controls" style="display:none">
+        <label class="opt"><input type="radio" name="gitmode" value="latest" checked> Latest (working tree)</label>
+        <label class="opt"><input type="radio" name="gitmode" value="history"> History (git commits)</label>
+        <p class="git-note" id="git-note"></p>
+        <div id="commit-graph-wrap" class="commit-graph-wrap" style="display:none">
+          <p class="commit-graph-explainer" id="commit-graph-explainer"></p>
+          <div class="pct-control" id="pct-control">
+            <label for="pct-slider">Pre-select commits with churn ≥ <b><span id="pct-label">50</span><sup>th</sup>-percentile</b></label>
+            <input type="range" id="pct-slider" min="0" max="100" value="50" step="1" />
+            <span class="pct-info">cutoff = <code><span id="pct-churn-val">…</span></code> lines · <b><span id="pct-selected-count">…</span></b> selected</span>
+          </div>
+          <div class="commit-graph-grid">
+            <div class="commit-row-labels">
+              <div class="rl bar">churn (lines)</div>
+              <div class="rl sha">Commit</div>
+              <div class="rl date">Date</div>
+              <div class="rl churn">Lines edited</div>
+              <div class="rl chk">Use?</div>
+            </div>
+            <div class="commit-graph" id="commit-graph"></div>
+          </div>
+          <div class="graph-legend">
+            <span>bar = .tex line churn · blue = selected (above cutoff)</span>
+            <span id="sel-summary"></span>
+          </div>
+        </div>
+      </div>
+      <div style="margin-top:14px"><button id="submit-latex">Submit</button></div>
+    </div>
+    <div class="meta" id="latex-meta"></div>
+    <details class="example-details">
+      <summary>Try-me example: <b>MAE</b> (arXiv 2111.06377)</summary>
+      <div class="example-body">
+        The bundled MAE source tree lives at <code>example_assets/mae/latex/</code> in this repo — click <b>Run example</b> below and the server will submit it as if you'd Browse'd there.
+        <div class="example-run">
+          <button data-run="latex" disabled>Run example (bundled MAE LaTeX dir)</button>
+          <span class="note" data-run-note="latex"></span>
+        </div>
+        Or fetch the source from arXiv and Browse to it yourself:
+        <pre>mkdir -p ~/mae_src
+curl -L https://arxiv.org/src/2111.06377 | tar xz -C ~/mae_src</pre>
+        Click <b>Browse…</b> above, navigate to <code>~/mae_src</code>, and hit <b>✓ Use this folder</b>. paperprep anonymizes the source (authors → Anonymous, strips URLs/ack/thanks) before compile + score.
+        <br><br>
+        If the dir is a <b>git repo</b>, an extra <b>History</b> option appears — score across commits to see how p_accept evolved over your paper's lifetime.
+      </div>
+    </details>
+  </div>
+
+  <div class="mode-pane" id="mode-arxiv">
+    <div class="latex-row">
+      <input type="text" id="arxiv-id" placeholder="arXiv id or URL  (e.g. 2305.00838 or https://arxiv.org/abs/2305.00838)" />
+      <button id="submit-arxiv">Submit</button>
+    </div>
+    <div class="latex-field">
+      <span>Entrypoint:</span>
+      <input type="text" id="arxiv-main-tex" placeholder="auto-detect (e.g. main.tex)" />
+    </div>
+    <p class="git-note">The server downloads <code>https://arxiv.org/src/&lt;id&gt;</code>, extracts it, and runs the LaTeX-dir pipeline. Append <code>v2</code>/<code>v3</code> for a specific version; bare id = latest.</p>
+    <div class="agent-toggle" data-tab="arxiv">
+      <span class="label">Run agentic review after decision:</span>
+      <label class="opt"><input type="radio" name="agent-arxiv" value="" checked> Off</label>
+      <label class="opt"><input type="radio" name="agent-arxiv" value="claude"> Claude Code</label>
+      <label class="opt"><input type="radio" name="agent-arxiv" value="codex"> Codex</label>
+      <span class="probe-info" data-probe="arxiv"></span>
+    </div>
+    <div class="meta" id="arxiv-meta"></div>
+    <details class="example-details">
+      <summary>Try-me example: <b>MAE</b> (arXiv 2111.06377)</summary>
+      <div class="example-body">
+        Click <b>Run example</b> to fetch MAE live from arXiv (id <code>2111.06377</code>) and route it through the full pipeline.
+        <div class="example-run">
+          <button data-run="arxiv" disabled>Run example (live download of arXiv 2111.06377)</button>
+          <span class="note" data-run-note="arxiv"></span>
+        </div>
+        Or paste any of these into the box above and hit Submit:
+        <pre>2111.06377
+2111.06377v3
+https://arxiv.org/abs/2111.06377</pre>
+        The server fetches <code>https://arxiv.org/src/2111.06377</code>, untars it, runs paperprep anonymization + compile, then scores. The 4-stage bar (download → latex_extraction → paperprep → paperlens_score) tracks progress.
+      </div>
+    </details>
+  </div>
+
+  <div class="meta" id="meta"></div>
+</div>
+
+<div id="progress" class="card" style="display:none">
+  <div class="stages" id="stages"></div>
+  <div class="bar"><div id="bar-fill" style="width:0%"></div></div>
+  <div class="meta" id="progress-meta"></div>
+</div>
+
+<!-- Per-tab result containers: each tab keeps its own result alive while you
+     switch modes, so a 14-commit history doesn't vanish when you peek at PDF. -->
+<div id="result-pdf"   class="result-box" style="display:none"></div>
+<div id="result-latex" class="result-box" style="display:none"></div>
+<div id="result-arxiv" class="result-box" style="display:none"></div>
+
+</div>
+
+<script>
+let STAGES = ["paperprep", "paperlens_score"];
+const STAGE_LABELS = {
+  download: "Fetching arXiv source",
+  latex_extraction: "Extracting LaTeX tarball",
+  paperprep: "paperprep (mineru + normalize + filter + export)",
+  paperlens_score: "PaperLens score",
+  mineru: "OCR (MinerU)",
+  normalize: "Normalize",
+  filter: "Filter",
+  export: "Export ShareGPT",
+  agent_setup: "Agent workspace setup",
+  agent_review: "Agentic review (streaming)",
+};
+
+const $ = (id) => document.getElementById(id);
+const meta = $("meta");
+const progressMeta = $("progress-meta");
+const progressBox = $("progress");
+const bar = $("bar-fill");
+const stagesEl = $("stages");
+const wrap = $("wrap");
+
+let CURRENT_MODE = "pdf";   // "pdf" | "latex" | "arxiv"
+let JOB_MODE = null;        // mode the most recently submitted job belongs to;
+                            // progress-bar visibility follows this so a stage
+                            // bar for an in-flight LaTeX job doesn't leak into
+                            // the PDF tab if you tab-switch mid-run.
+let PROBE = null;           // last /probe_latex response (holds history.commits)
+
+// Per-tab result container — each mode keeps its own result alive while
+// you switch tabs, so a long history trajectory or a per-commit drilldown
+// doesn't vanish when you peek at another tab.
+function resultBox(mode) { return $(`result-${mode}`); }
+
+// Show only the current mode's result, hiding the others. Called on every
+// tab switch + after each beginJob/render.
+function refreshResultVisibility() {
+  ["pdf", "latex", "arxiv"].forEach((m) => {
+    const box = resultBox(m);
+    if (!box) return;
+    const hasContent = box.innerHTML.trim().length > 0;
+    box.style.display = (m === CURRENT_MODE && hasContent) ? "block" : "none";
+  });
+  // Widen the page when the visible result wants it, OR when we're on the
+  // LaTeX tab (the churn-graph + trajectory want horizontal room from the
+  // moment you enter the tab, not just after a result lands).
+  const active = resultBox(CURRENT_MODE);
+  const wantsWide = CURRENT_MODE === "latex"
+    || (active && active.dataset.wide === "1" && active.style.display !== "none");
+  wrap.classList.toggle("wide", !!wantsWide);
+  // Progress bar (stage row + fill bar) follows JOB_MODE: a job submitted
+  // on the PDF tab shows its progress only on the PDF tab, not on LaTeX/arxiv.
+  // Once a job is done, the completed bar persists on its origin tab and
+  // stays hidden everywhere else.
+  if (progressBox) {
+    progressBox.style.display = (JOB_MODE !== null && CURRENT_MODE === JOB_MODE) ? "block" : "none";
+  }
+}
+
+function renderStages(currentIdx, state) {
+  stagesEl.innerHTML = "";
+  STAGES.forEach((s, i) => {
+    const cls = (state === "done") || (i < currentIdx) ? "done" : (i === currentIdx ? "active" : "");
+    const el = document.createElement("div");
+    el.className = "stage " + cls;
+    el.textContent = STAGE_LABELS[s] || s;
+    stagesEl.appendChild(el);
+  });
+}
+
+function esc(s) {
+  return String(s).replace(/[&<>"']/g, (c) => ({
+    "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
+  })[c]);
+}
+
+function fmtSize(n) {
+  if (n == null) return "";
+  if (n < 1024) return n + " B";
+  if (n < 1024*1024) return (n/1024).toFixed(1) + " KB";
+  return (n/(1024*1024)).toFixed(2) + " MB";
+}
+
+async function renderVerdict(jobId, result, mode) {
+  const box = resultBox(mode);
+  box.dataset.wide = "1";
+  box.style.display = "block";
+  // Preserve any in-place agent-chats container BEFORE the innerHTML rewrite
+  // wipes it. We re-append it below so the streaming transcripts stay
+  // visible alongside the final verdict card.
+  const existingChats = box.querySelector(".agent-chats");
+  const cls = result.decision === "Accept" ? "accept" : "reject";
+  box.innerHTML = `
+    <div class="card">
+      <div class="tabs">
+        <button class="tab active" data-tab="verdict">Verdict</button>
+        <button class="tab" data-tab="files">Files</button>
+        <button class="tab" data-tab="paperlens">PaperLens input</button>
+      </div>
+      <div class="pane active" data-tab="verdict">
+        <div class="verdict ${cls}">
+          <div>
+            <h2>${result.decision}</h2>
+            <div class="p">p_accept = ${result.p_accept.toFixed(4)} &middot; ${result.modality} / ${result.domain}</div>
+          </div>
+        </div>
+        <details><summary>raw result</summary><pre>${esc(JSON.stringify(result, null, 2))}</pre></details>
+      </div>
+      <div class="pane" data-tab="files">
+        <div class="explorer">
+          <div class="explorer-tree"><em>loading…</em></div>
+          <div class="explorer-view"><div class="empty">Pick a file in the tree.</div></div>
+        </div>
+      </div>
+      <div class="pane pane-paperlens" data-tab="paperlens">
+        <div class="empty">loading…</div>
+      </div>
+    </div>
+  `;
+  // Tab wiring -- scoped to THIS result box so multiple persistent result
+  // boxes (one per mode) don't fight each other for the same selectors.
+  box.querySelectorAll(".tab").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      box.querySelectorAll(".tab").forEach(b => b.classList.toggle("active", b === btn));
+      const which = btn.dataset.tab;
+      box.querySelectorAll(".pane").forEach(p => p.classList.toggle("active", p.dataset.tab === which));
+    });
+  });
+  // Lazy-load tree + payload (each scoped to this box).
+  loadTree(jobId, box).catch((e) => {
+    const t = box.querySelector(".explorer-tree");
+    if (t) t.innerHTML = `<div class="err">${esc(String(e))}</div>`;
+  });
+  loadPayload(jobId, box).catch((e) => {
+    const p = box.querySelector(".pane-paperlens");
+    if (p) p.innerHTML = `<div class="err">${esc(String(e))}</div>`;
+  });
+  // Restore the agent transcripts we saved above so the final verdict and
+  // the agent chat panels coexist after completion. Without this they'd
+  // get nuked by the innerHTML rewrite above.
+  if (existingChats) box.appendChild(existingChats);
+  refreshResultVisibility();
+}
+
+function renderError(err, mode) {
+  const box = resultBox(mode || CURRENT_MODE);
+  box.dataset.wide = "";
+  box.innerHTML = `<div class="err">${esc(err)}</div>`;
+  refreshResultVisibility();
+}
+
+/* ---------------- file explorer ---------------- */
+
+async function loadTree(jobId, box, commit) {
+  const q = commit ? `?commit=${encodeURIComponent(commit)}` : "";
+  const r = await fetch(`/jobs/${jobId}/tree${q}`);
+  if (!r.ok) throw new Error(`tree fetch failed: ${r.status}`);
+  const tree = await r.json();
+  const treeEl = box.querySelector(".explorer-tree");
+  treeEl.innerHTML = "";
+  for (const [label, node] of Object.entries(tree)) {
+    const head = document.createElement("div");
+    head.className = "root-label";
+    head.textContent = label + "/";
+    treeEl.appendChild(head);
+    treeEl.appendChild(renderNode(node, jobId, box, /*topLevel=*/true, commit));
+  }
+}
+
+function renderNode(node, jobId, box, topLevel = false, commit) {
+  const div = document.createElement("div");
+  if (node.type === "truncated") {
+    const t = document.createElement("span");
+    t.className = "tree-node truncated";
+    t.textContent = "… (truncated)";
+    div.appendChild(t);
+    return div;
+  }
+  const row = document.createElement("span");
+  row.className = "tree-node " + (node.type === "dir" ? "dir" : "file");
+  const icon = node.type === "dir" ? "📁" : "📄";
+  row.textContent = `${icon} ${node.name}${node.type === "dir" ? "/" : ""}${node.size != null ? "  (" + fmtSize(node.size) + ")" : ""}`;
+  div.appendChild(row);
+  if (node.type === "dir" && node.children) {
+    const kids = document.createElement("div");
+    kids.className = "tree-children";
+    if (!topLevel) kids.style.display = "none";
+    for (const c of node.children) kids.appendChild(renderNode(c, jobId, box, false, commit));
+    div.appendChild(kids);
+    row.addEventListener("click", (e) => {
+      e.stopPropagation();
+      kids.style.display = kids.style.display === "none" ? "block" : "none";
+    });
+  } else if (node.type === "file") {
+    row.addEventListener("click", (e) => {
+      e.stopPropagation();
+      // Scope selected-state clearing to THIS result box (each mode tab has
+      // its own tree).
+      box.querySelectorAll(".tree-node.selected").forEach(n => n.classList.remove("selected"));
+      row.classList.add("selected");
+      openFile(jobId, node.path, node.name, box, commit);
+    });
+  } else if (node.type === "missing") {
+    row.textContent = `⚠️ ${node.name} (missing)`;
+    row.classList.add("truncated");
+  }
+  return div;
+}
+
+async function openFile(jobId, path, name, box, commit) {
+  const view = box.querySelector(".explorer-view");
+  const ext = (name.split(".").pop() || "").toLowerCase();
+  const cq = commit ? `&commit=${encodeURIComponent(commit)}` : "";
+  const url = `/jobs/${jobId}/file?path=${encodeURIComponent(path)}${cq}`;
+  const head = `<div class="filename-bar"><span class="name">${esc(name)}</span> &nbsp; ${esc(path)}</div>`;
+  if (["png", "jpg", "jpeg", "gif", "webp"].includes(ext)) {
+    view.innerHTML = head + `<img src="${url}" />`;
+    return;
+  }
+  if (ext === "pdf") {
+    view.innerHTML = head + `<iframe src="${url}"></iframe>`;
+    return;
+  }
+  // Fetch and render as text/JSON/markdown
+  view.innerHTML = head + `<div class="empty">loading…</div>`;
+  const r = await fetch(url);
+  if (!r.ok) { view.innerHTML = head + `<div class="err">${esc("fetch failed: " + r.status)}</div>`; return; }
+  const txt = await r.text();
+  if (ext === "json" || ext === "jsonl") {
+    try {
+      // jsonl: each line is a record; show as array
+      let body = txt;
+      if (ext === "jsonl") {
+        const recs = txt.split(/\n+/).filter(Boolean).map(l => JSON.parse(l));
+        body = JSON.stringify(recs, null, 2);
+      } else {
+        body = JSON.stringify(JSON.parse(txt), null, 2);
+      }
+      view.innerHTML = head + `<pre>${esc(body)}</pre>`;
+    } catch (e) {
+      view.innerHTML = head + `<pre>${esc(txt)}</pre>`;
+    }
+    return;
+  }
+  view.innerHTML = head + `<pre>${esc(txt)}</pre>`;
+}
+
+/* ---------------- paperlens-input view ---------------- */
+
+async function loadPayload(jobId, box, commit) {
+  const q = commit ? `?commit=${encodeURIComponent(commit)}` : "";
+  const r = await fetch(`/jobs/${jobId}/payload${q}`);
+  if (!r.ok) throw new Error(`payload fetch failed: ${r.status}`);
+  const pl = await r.json();
+  const pane = box.querySelector(".pane-paperlens");
+  const row = pl.row || {};
+  const convs = row.conversations || [];
+  const sys = (convs.find(c => c.from === "system") || {}).value || "";
+  const human = (convs.find(c => c.from === "human") || {}).value || "";
+  const gpt = (convs.find(c => c.from === "gpt") || {}).value || "";
+  const images = row.images || [];
+
+  let imgsHtml = "";
+  if (images.length) {
+    const cq = commit ? `&commit=${encodeURIComponent(commit)}` : "";
+    imgsHtml = `<div class="image-grid">` + images.map((p, i) => {
+      const url = `/jobs/${jobId}/file?path=${encodeURIComponent(p)}${cq}`;
+      return `<figure><img src="${url}" /><figcaption>${esc(p.split("/").pop())}</figcaption></figure>`;
+    }).join("") + `</div>`;
+  } else {
+    imgsHtml = `<div class="empty">No images in this row (text modality).</div>`;
+  }
+
+  pane.innerHTML = `
+    <div class="payload-section">
+      <h3>Summary</h3>
+      <pre>modality: ${esc(pl.modality)}
+sharegpt_path: ${esc(pl.sharegpt_path)}
+n_images: ${images.length}
+metadata: ${esc(JSON.stringify(row._metadata || {}, null, 2))}</pre>
+    </div>
+    <div class="payload-section">
+      <h3>Images (${images.length})</h3>
+      ${imgsHtml}
+    </div>
+    <div class="payload-section">
+      <h3>System prompt</h3>
+      <pre>${esc(sys)}</pre>
+    </div>
+    <div class="payload-section">
+      <h3>Human turn  (the actual model input — text + &lt;image&gt; tags)</h3>
+      <pre>${esc(human)}</pre>
+    </div>
+    <div class="payload-section">
+      <h3>Placeholder assistant turn  (appended by paperlensreview for LF's ppo stage)</h3>
+      <pre>${esc(gpt)}</pre>
+    </div>
+    <details>
+      <summary>raw sharegpt row JSON</summary>
+      <pre>${esc(JSON.stringify(row, null, 2))}</pre>
+    </details>
+  `;
+}
+
+/* ---------------- polling ---------------- */
+
+async function poll(job_id, mode) {
+  let lastStage = null;
+  let earlyVerdictRendered = false;   // PaperLens decision card lands as soon
+                                       // as paperlens_score finishes, even if
+                                       // the (optional) agent stages still run.
+  while (true) {
+    const r = await fetch(`/status/${job_id}`);
+    if (!r.ok) {
+      renderError(`status fetch failed: ${r.status} ${r.statusText}`, mode);
+      return;
+    }
+    const s = await r.json();
+    // Per-job stage list arrives in the status payload (server-side it lives
+    // on JobStatus.stages and round-trips through to_dict). The submit
+    // response also sets the global STAGES the moment a job starts.
+    if (Array.isArray(s.stages) && s.stages.length) STAGES = s.stages;
+    const idx = Math.max(0, s.stage_index);
+    const total = s.total_stages || STAGES.length;
+    const pct = s.state === "done" ? 100 : Math.min(99, Math.round((idx / total) * 100));
+    bar.style.width = pct + "%";
+    renderStages(idx, s.state);
+    if (s.stage !== lastStage) {
+      progressMeta.textContent = `stage: ${s.stage || "queued"}  (${idx + 1}/${total})`;
+      lastStage = s.stage;
+    }
+    // Show PaperLens's decision as soon as the score stage is past -- don't
+    // make the user wait for the agent runs to finish. renderVerdict is
+    // idempotent (preserves any in-flight .agent-chats), so re-calling at
+    // the end of the job is safe.
+    if (!earlyVerdictRendered
+        && s.result
+        && s.result.source_type !== "latex_history"
+        && (s.stage === "agent_setup" || s.stage === "agent_review")) {
+      earlyVerdictRendered = true;
+      await renderVerdict(job_id, s.result, mode);
+    }
+    if (s.state === "done") {
+      bar.style.width = "100%";
+      if (s.result && s.result.source_type === "latex_history") {
+        renderTrajectory(job_id, s.result, mode);
+      } else {
+        // Re-render to pick up the final result.json (which now carries the
+        // agent block + paperlens_prior calibration bundle).
+        await renderVerdict(job_id, s.result, mode);
+      }
+      return;
+    }
+    if (s.state === "error") {
+      renderError(s.error || "unknown error", mode);
+      return;
+    }
+    await new Promise(r => setTimeout(r, 1500));
+  }
+}
+
+/* ---------------- commit-history trajectory result ---------------- */
+
+function renderTrajectory(jobId, result, mode) {
+  const box = resultBox(mode);
+  box.dataset.wide = "1";
+  const traj = result.trajectory || [];
+
+  // Build the SVG line graph: x = commit chronological index, y = p_accept.
+  // EMA = exponentially-weighted moving average over `done` p_accept's,
+  // alpha = 0.4 (smooths over ~3 commits). Failed commits get a grey x
+  // glyph and break the main line into segments (gaps shouldn't be
+  // interpolated -- failed = no data, not zero).
+  const ALPHA = 0.4;
+  const W = Math.max(640, traj.length * 64);   // 64px per commit, min 640
+  const H = 240;
+  const M = { top: 18, right: 18, bottom: 44, left: 36 };
+  const PW = W - M.left - M.right;
+  const PH = H - M.top - M.bottom;
+  const N = traj.length;
+  const xs = (i) => M.left + (N <= 1 ? PW / 2 : (PW * i) / (N - 1));
+  const ys = (p) => M.top + PH - p * PH;
+
+  // EMA over the done sequence (in chronological order). Failed commits
+  // don't update the EMA -- skip them, so a transient compile failure
+  // doesn't pin the EMA at the last good value while time progresses.
+  let ema = null;
+  const emaPts = [];
+  traj.forEach((rec, i) => {
+    if (rec.state === "done") {
+      ema = ema === null ? rec.p_accept : ALPHA * rec.p_accept + (1 - ALPHA) * ema;
+      emaPts.push([i, ema]);
+    }
+  });
+
+  // Main line: connect consecutive done commits. Break the polyline at
+  // failed gaps so it doesn't fake a value where there isn't one.
+  const segments = [];
+  let cur = [];
+  traj.forEach((rec, i) => {
+    if (rec.state === "done") cur.push([i, rec.p_accept]);
+    else if (cur.length) { segments.push(cur); cur = []; }
+  });
+  if (cur.length) segments.push(cur);
+
+  const polylineFor = (pts) =>
+    pts.map(([i, v]) => `${xs(i).toFixed(1)},${ys(v).toFixed(1)}`).join(" ");
+
+  const linesSvg = segments.map((pts) =>
+    `<polyline class="traj-line" points="${polylineFor(pts)}" />`).join("");
+  const emaSvg = emaPts.length >= 2
+    ? `<polyline class="traj-line-ema" points="${polylineFor(emaPts)}" />`
+    : "";
+  const threshY = ys(0.5).toFixed(1);
+  const xticks = traj.map((rec, i) => {
+    // Skip every other tick when crowded, keep first + last.
+    const stride = Math.max(1, Math.ceil(N / 10));
+    if (!(i === 0 || i === N - 1 || i % stride === 0)) return "";
+    const x = xs(i).toFixed(1);
+    return `<text class="traj-xtick" x="${x}" y="${(H - M.bottom + 14).toFixed(1)}" text-anchor="middle">${esc(rec.short)}</text>`
+         + `<text class="traj-xtick" x="${x}" y="${(H - M.bottom + 28).toFixed(1)}" text-anchor="middle" style="opacity:.7">${esc(rec.date || "")}</text>`;
+  }).join("");
+  const yticks = [0, 0.25, 0.5, 0.75, 1].map((p) => {
+    const y = ys(p).toFixed(1);
+    return `<text class="traj-tick" x="${(M.left - 6).toFixed(1)}" y="${y}" text-anchor="end" dominant-baseline="middle">${p.toFixed(2)}</text>`
+         + `<line class="traj-axis" x1="${M.left}" y1="${y}" x2="${(M.left + PW).toFixed(1)}" y2="${y}" style="opacity:${p === 0.5 ? 0 : 0.25}"/>`;
+  }).join("");
+  const points = traj.map((rec, i) => {
+    const done = rec.state === "done";
+    const cls = !done ? "failed" : (rec.decision === "Accept" ? "accept" : "reject");
+    const y = done ? ys(rec.p_accept) : (H - M.bottom - 4);   // failed = bottom rail
+    const tip = done
+      ? `${rec.short} · ${rec.date || ""} · ${rec.decision} p_accept=${rec.p_accept}`
+      : `${rec.short} · ${rec.state}${rec.error ? ": " + rec.error : ""}`;
+    return `<circle class="traj-point ${cls}" cx="${xs(i).toFixed(1)}" cy="${y.toFixed(1)}" r="5" data-idx="${i}"><title>${esc(tip)}</title></circle>`;
+  }).join("");
+
+  box.innerHTML = `<div class="card traj-card">
+    <h2 style="font-size:20px;margin:0 0 4px 0">Commit trajectory · ${esc(result.modality)}/${esc(result.domain)}</h2>
+    <p class="sub" style="margin:0 0 10px 0">${result.n_scored}/${result.n_commits} commits scored · p_accept across <code>.tex</code> history (oldest → newest) · click any point to drill in.</p>
+    <div class="traj-grid">
+      <div class="traj-chart-col">
+        <div class="traj-chart-wrap">
+          <svg class="traj-svg" viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" preserveAspectRatio="xMinYMin meet">
+            ${yticks}
+            <line class="traj-thresh-svg" x1="${M.left}" y1="${threshY}" x2="${(M.left + PW).toFixed(1)}" y2="${threshY}" />
+            ${linesSvg}
+            ${emaSvg}
+            ${points}
+            ${xticks}
+          </svg>
+        </div>
+        <div class="traj-legend">
+          <span><span class="swatch sw-line"></span>p_accept</span>
+          <span><span class="swatch sw-ema"></span>EMA (α=${ALPHA})</span>
+          <span><span class="swatch" style="background:var(--accept)"></span>Accept</span>
+          <span><span class="swatch" style="background:var(--reject)"></span>Reject</span>
+          <span><span class="swatch" style="background:var(--card-bd)"></span>failed</span>
+          <span>dashed = 0.5 threshold</span>
+        </div>
+      </div>
+      <div class="traj-tile-wrap">
+        <div class="traj-tile-empty">click a point on the chart to preview that commit's first 10 pages</div>
+      </div>
+    </div>
+    <div class="commit-drilldown"></div>
+    <details style="margin-top:10px"><summary>raw trajectory JSON</summary><pre>${esc(JSON.stringify(result.trajectory, null, 2))}</pre></details>
+  </div>`;
+
+  // Click-to-drill: each point opens the per-commit detail panel below.
+  box.querySelectorAll(".traj-point").forEach((c) => {
+    if (c.classList.contains("failed")) return;   // nothing to drill into
+    c.addEventListener("click", () => renderCommitDrilldown(jobId, result, +c.dataset.idx, mode));
+  });
+
+  // Auto-open the first scored commit so the drilldown isn't empty on load.
+  const firstDone = traj.findIndex((r) => r.state === "done");
+  if (firstDone >= 0) renderCommitDrilldown(jobId, result, firstDone, mode);
+
+  refreshResultVisibility();
+}
+
+function updateTilePreview(jobId, rec, mode) {
+  const box = resultBox(mode);
+  const tile = box.querySelector(".traj-tile-wrap");
+  if (!tile) return;
+  if (!rec || !rec.panel_path) {
+    tile.innerHTML = `<div class="traj-tile-empty">no panel for ${esc(rec ? rec.short : '?')} (paperprep didn't emit one — older job?)</div>`;
+    return;
+  }
+  const url = `/jobs/${jobId}/file?path=${encodeURIComponent(rec.panel_path)}&commit=${encodeURIComponent(rec.short)}`;
+  tile.innerHTML = `
+    <p class="traj-tile-head">
+      <span class="sha">${esc(rec.short)}</span> &nbsp; ${esc(rec.date || "")}
+      <br>${esc((rec.subject || "").slice(0, 60))}
+    </p>
+    <img class="traj-tile-img" src="${url}" alt="panel preview ${esc(rec.short)}" />`;
+}
+
+function renderCommitDrilldown(jobId, result, idx, mode) {
+  const rec = (result.trajectory || [])[idx];
+  if (!rec || rec.state !== "done") return;
+  const box = resultBox(mode);
+  const dl = box.querySelector(".commit-drilldown");
+  if (!dl) return;
+  // Swap in the right-rail panel preview for this commit.
+  updateTilePreview(jobId, rec, mode);
+  const cls = rec.decision === "Accept" ? "accept" : "reject";
+  dl.innerHTML = `
+    <div class="card commit-drill-card">
+      <p class="drill-header">
+        <span class="sha">${esc(rec.short)}</span>
+        <span class="date">${esc(rec.date || "")}</span>
+        <span class="subject">${esc(rec.subject || "")}</span>
+      </p>
+      <div class="tabs">
+        <button class="tab active" data-tab="verdict">Verdict</button>
+        <button class="tab" data-tab="files">Files</button>
+        <button class="tab" data-tab="paperlens">PaperLens input</button>
+      </div>
+      <div class="pane active" data-tab="verdict">
+        <div class="verdict ${cls}">
+          <div>
+            <h2>${rec.decision}</h2>
+            <div class="p">p_accept = ${rec.p_accept.toFixed(4)} &middot; ${esc(result.modality)} / ${esc(result.domain)}${rec.body_pages ? " · " + rec.body_pages + " body pages" : ""}</div>
+          </div>
+        </div>
+        <details><summary>raw rec</summary><pre>${esc(JSON.stringify(rec, null, 2))}</pre></details>
+      </div>
+      <div class="pane" data-tab="files">
+        <div class="explorer">
+          <div class="explorer-tree"><em>loading…</em></div>
+          <div class="explorer-view"><div class="empty">Pick a file in the tree.</div></div>
+        </div>
+      </div>
+      <div class="pane pane-paperlens" data-tab="paperlens">
+        <div class="empty">loading…</div>
+      </div>
+    </div>
+  `;
+  // Tab wiring scoped to this drilldown (multiple drilldowns can exist
+  // across persistent result tabs without interfering).
+  dl.querySelectorAll(".tab").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      dl.querySelectorAll(".tab").forEach((b) => b.classList.toggle("active", b === btn));
+      dl.querySelectorAll(".pane").forEach((p) => p.classList.toggle("active", p.dataset.tab === btn.dataset.tab));
+    });
+  });
+  // Files + PaperLens input scoped to *this commit's* paperprep dirs via
+  // the new ?commit=<short> query param on the file endpoints.
+  loadTree(jobId, dl, rec.short).catch((e) => {
+    const t = dl.querySelector(".explorer-tree");
+    if (t) t.innerHTML = `<div class="err">${esc(String(e))}</div>`;
+  });
+  loadPayload(jobId, dl, rec.short).catch((e) => {
+    const p = dl.querySelector(".pane-paperlens");
+    if (p) p.innerHTML = `<div class="err">${esc(String(e))}</div>`;
+  });
+}
+
+/* ---------------- shared submit / progress reset ---------------- */
+
+// Lock the whole input card while a job runs: no mode switching, no commit
+// selection, no second submit, until the run finishes (done or error).
+function setBusy(b) { $("input-card").classList.toggle("locked", b); }
+
+function beginJob(historyMode, mode) {
+  // Clear only the active tab's result. Other tabs keep their previous
+  // results so a history trajectory or a verdict survives tab switching.
+  const box = resultBox(mode || CURRENT_MODE);
+  box.style.display = "none";
+  box.innerHTML = "";
+  box.dataset.wide = "";
+  // Anchor this job's progress bar to its origin tab.
+  JOB_MODE = mode || CURRENT_MODE;
+  bar.style.width = "0%";
+  stagesEl.style.display = historyMode ? "none" : "flex";
+  refreshResultVisibility();   // shows the progress bar on this tab only
+  setBusy(true);
+}
+
+async function afterSubmit(resp, mode) {
+  if (Array.isArray(resp.stages) && resp.stages.length) STAGES = resp.stages;
+  await poll(resp.job_id, mode);
+}
+
+/* ---------------- input-mode toggle ---------------- */
+
+document.querySelectorAll(".mode-btn").forEach((btn) => {
+  btn.addEventListener("click", () => {
+    CURRENT_MODE = btn.dataset.mode;
+    document.querySelectorAll(".mode-btn").forEach((b) => b.classList.toggle("active", b === btn));
+    document.querySelectorAll(".mode-pane").forEach((p) => p.classList.toggle("active", p.id === `mode-${CURRENT_MODE}`));
+    // Show this tab's stored result (if any); hide the others. A history
+    // trajectory built earlier in the LaTeX tab survives a peek at PDF/arXiv.
+    refreshResultVisibility();
+  });
+});
+
+/* ---------------- Agentic-review toggle + streaming ---------------- */
+
+let AGENT_PROBE = null;             // {claude:{available,...}, codex:{...}}
+const AGENT_VARIANTS = ["no_prior", "with_prior"];
+
+// Track per-(job,variant) polling so a tab switch / re-render doesn't
+// double-start the event loop. Keyed by `${jobId}__${variant}`.
+const _agentPolls = new Map();
+
+async function refreshAgentProbe() {
+  try {
+    const r = await fetch("/health");
+    if (!r.ok) return;
+    const h = await r.json();
+    AGENT_PROBE = h.agents || {};
+  } catch (e) { /* health is optional; toggle stays Off */ }
+  ["pdf", "arxiv"].forEach(applyAgentProbe);
+}
+function applyAgentProbe(tab) {
+  const probeEl = document.querySelector(`.probe-info[data-probe="${tab}"]`);
+  if (!probeEl) return;
+  const opts = document.querySelectorAll(`input[name="agent-${tab}"]`);
+  if (!AGENT_PROBE) { probeEl.textContent = "probing CLIs…"; return; }
+  const bits = [];
+  opts.forEach((inp) => {
+    const v = inp.value;
+    if (!v) return;
+    const info = AGENT_PROBE[v] || {};
+    const lab = inp.parentElement;
+    if (info.available) {
+      lab.classList.remove("disabled"); inp.disabled = false;
+      bits.push(`${v}=${(info.version || "ok").split(" ")[0]}`);
+    } else {
+      lab.classList.add("disabled"); inp.disabled = true; inp.checked = false;
+      bits.push(`${v}=not installed`);
+    }
+  });
+  // Ensure "Off" is selected if both are disabled or nothing else picked.
+  const checked = document.querySelector(`input[name="agent-${tab}"]:checked`);
+  if (!checked) {
+    const off = document.querySelector(`input[name="agent-${tab}"][value=""]`);
+    if (off) off.checked = true;
+  }
+  probeEl.textContent = bits.length ? bits.join("  ·  ") : "";
+}
+function selectedAgent(tab) {
+  const r = document.querySelector(`input[name="agent-${tab}"]:checked`);
+  return r && r.value ? r.value : null;
+}
+
+function _ensureAgentChats(mode, agent) {
+  const box = resultBox(mode);
+  if (!box) return null;
+  let chats = box.querySelector(".agent-chats");
+  if (chats) return chats;
+  // Find an anchor to insert before -- prefer the existing verdict card,
+  // otherwise just append.
+  chats = document.createElement("div");
+  chats.className = "agent-chats";
+  chats.innerHTML = `
+    <div class="agent-chat-card" data-variant="no_prior">
+      <div class="agent-chat-head">
+        <span class="agent-chat-title">${esc(agent)} · <b>no prior</b></span>
+        <span class="agent-chat-state" data-state>queued</span>
+      </div>
+      <div class="agent-chat-body" data-body></div>
+    </div>
+    <div class="agent-chat-card" data-variant="with_prior">
+      <div class="agent-chat-head">
+        <span class="agent-chat-title">${esc(agent)} · <b>with PaperLens prior</b></span>
+        <span class="agent-chat-state" data-state>queued</span>
+      </div>
+      <div class="agent-chat-body" data-body></div>
+    </div>`;
+  box.appendChild(chats);
+  // Result box is hidden until it has content -- now that we just gave it
+  // some, flip the visibility check so the chat popups are actually shown
+  // while events stream in (verdict card lands later, after the agents end).
+  // Also widen the page so the two side-by-side panes have room to breathe.
+  box.dataset.wide = "1";
+  refreshResultVisibility();
+  return chats;
+}
+
+function _renderAgentEvent(bodyEl, ev) {
+  const div = document.createElement("div");
+  if (ev.kind === "text") {
+    const role = (ev.payload && ev.payload.role) || "assistant";
+    div.className = `agent-msg ${esc(role)}`;
+    div.innerHTML = `<div class="role">${esc(role)}</div><pre>${esc(ev.payload.text || "")}</pre>`;
+  } else if (ev.kind === "tool_call") {
+    const name = (ev.payload && ev.payload.name) || "tool";
+    const inp = ev.payload && ev.payload.input;
+    div.className = "agent-tool";
+    div.dataset.toolId = (ev.payload && ev.payload.id) || "";
+    div.innerHTML = `
+      <div class="tool-name">→ ${esc(name)}</div>
+      <div class="tool-args">${esc(JSON.stringify(inp || {}, null, 2))}</div>`;
+  } else if (ev.kind === "tool_result") {
+    // Attach to the matching tool_call card if we can find it; otherwise append.
+    const id = (ev.payload && ev.payload.tool_use_id) || "";
+    let card = id && bodyEl.querySelector(`.agent-tool[data-tool-id="${CSS.escape(id)}"]`);
+    if (!card) {
+      const candidates = bodyEl.querySelectorAll(".agent-tool");
+      card = candidates.length ? candidates[candidates.length - 1] : null;
+    }
+    const resCls = (ev.payload && ev.payload.exit_code && ev.payload.exit_code !== 0) ? "error" : "";
+    const content = (ev.payload && ev.payload.content) || "";
+    const block = document.createElement("div");
+    block.className = `tool-result ${resCls}`;
+    block.textContent = content;
+    if (card) { card.appendChild(block); }
+    else {
+      div.className = "agent-tool";
+      div.appendChild(block);
+      bodyEl.appendChild(div);
+    }
+    return;
+  } else if (ev.kind === "status") {
+    div.className = "agent-status";
+    const p = ev.payload || {};
+    const txt = p.msg || p.model || p.thread_id || JSON.stringify(p);
+    div.textContent = `· ${txt}`;
+  } else if (ev.kind === "error") {
+    div.className = "agent-final fail";
+    div.innerHTML = `<span class="key">error:</span> ${esc(ev.payload.msg || "")}`;
+  } else if (ev.kind === "done") {
+    const p = ev.payload || {};
+    const preds = p.predictions;
+    const elapsedNum = (typeof p.elapsed_s === "number") ? p.elapsed_s : null;
+    const elapsedStr = elapsedNum !== null ? `${elapsedNum.toFixed(1)}s` : "";
+    if (!preds) {
+      div.className = "agent-final-fail";
+      div.innerHTML = `agent finished without a parseable <code>predictions.json</code>
+        ${elapsedStr ? `&nbsp;·&nbsp; ${esc(elapsedStr)}` : ""}
+        — likely the schema validator rejected the output.`;
+      bodyEl.appendChild(div);
+      bodyEl.scrollTop = bodyEl.scrollHeight;
+      return;
+    }
+    div.className = `agent-review ${esc(preds.decision === "accept" ? "accept" : "reject")}`;
+    const scoreCell = (label, val) =>
+      `<div class="agent-review-score"><span class="label">${esc(label)}</span>
+         <span class="value">${esc(val === undefined || val === null ? "—" : val)}</span></div>`;
+    const section = (title, val, mutedIfBlank) => {
+      const v = (val == null) ? "" : String(val);
+      const blank = !v.trim();
+      const cls = (blank && mutedIfBlank) ? "field muted" : "field";
+      const display = blank ? (mutedIfBlank ? "(none)" : "") : v;
+      return `<h4>${esc(title)}</h4><p class="${cls}">${esc(display)}</p>`;
+    };
+    div.innerHTML = `
+      <div class="agent-review-banner">
+        <span class="decision">${esc(preds.decision)}</span>
+        <span class="rating">rating ${esc(String(preds.rating ?? "?"))}/10</span>
+        <span class="elapsed">${esc(elapsedStr)}</span>
+      </div>
+      <div class="agent-review-scores">
+        ${scoreCell("conf", preds.confidence)}
+        ${scoreCell("sound", preds.soundness)}
+        ${scoreCell("present", preds.presentation)}
+        ${scoreCell("contrib", preds.contribution)}
+      </div>
+      <div class="agent-review-sections">
+        ${section("Summary", preds.summary)}
+        ${section("Strengths", preds.strengths)}
+        ${section("Weaknesses", preds.weaknesses)}
+        ${section("Questions", preds.questions, true)}
+        ${section("Missing references", preds.missing_references, true)}
+      </div>`;
+  } else {
+    div.className = "agent-status";
+    div.textContent = `· ${ev.kind}`;
+  }
+  bodyEl.appendChild(div);
+  bodyEl.scrollTop = bodyEl.scrollHeight;
+}
+
+async function _pollAgentVariant(jobId, mode, agent, variant) {
+  const key = `${jobId}__${variant}`;
+  if (_agentPolls.get(key)) return;        // already running
+  _agentPolls.set(key, true);
+  let since = 0;
+  let lastState = null;
+  // Loop until the variant reaches a terminal state AND we've drained events.
+  while (true) {
+    try {
+      const r = await fetch(`/jobs/${jobId}/agent_events?variant=${variant}&since=${since}&limit=200`);
+      if (!r.ok) { await new Promise(rs => setTimeout(rs, 2000)); continue; }
+      const data = await r.json();
+      const chats = _ensureAgentChats(mode, agent);
+      if (!chats) break;
+      const card = chats.querySelector(`.agent-chat-card[data-variant="${variant}"]`);
+      const stateEl = card && card.querySelector("[data-state]");
+      const bodyEl = card && card.querySelector("[data-body]");
+      if (stateEl && data.state !== lastState) {
+        stateEl.textContent = data.state;
+        stateEl.className = `agent-chat-state ${data.state}`;
+        lastState = data.state;
+      }
+      (data.events || []).forEach((ev) => _renderAgentEvent(bodyEl, ev));
+      since = data.next_since;
+      if (data.state === "done" || data.state === "error") {
+        if (since >= data.total) break;    // drained
+      }
+    } catch (e) { /* fall through to sleep */ }
+    await new Promise(rs => setTimeout(rs, 1500));
+  }
+  _agentPolls.delete(key);
+}
+
+function startAgentStreaming(jobId, mode, agent) {
+  // Spin up both variant polls concurrently; each writes into its own card.
+  _ensureAgentChats(mode, agent);
+  AGENT_VARIANTS.forEach((v) => _pollAgentVariant(jobId, mode, agent, v));
+}
+
+/* ---------------- PDF submit ---------------- */
+
+$("submit").addEventListener("click", async () => {
+  const f = $("pdf").files[0];
+  if (!f) { meta.textContent = "pick a PDF first"; return; }
+  meta.textContent = `uploading ${f.name} (${(f.size/1024).toFixed(1)} KB) ...`;
+  $("submit").disabled = true;
+  beginJob(false, "pdf");
+  try {
+    const body = new FormData();
+    body.append("file", f);
+    const agent = selectedAgent("pdf");
+    if (agent) body.append("agent", agent);
+    const r = await fetch("/submit", { method: "POST", body });
+    if (!r.ok) { renderError(`submit failed: ${r.status} ${await r.text()}`, "pdf"); return; }
+    const resp = await r.json();
+    meta.textContent = `submitted job ${resp.job_id}${resp.agent ? " + " + resp.agent : ""}`;
+    if (resp.agent) startAgentStreaming(resp.job_id, "pdf", resp.agent);
+    await afterSubmit(resp, "pdf");
+  } finally {
+    $("submit").disabled = false;
+    setBusy(false);
+  }
+});
+
+/* ---------------- LaTeX probe + commit graph ---------------- */
+
+function updateSelSummary() {
+  const commits = (PROBE && PROBE.history && PROBE.history.commits) || [];
+  const n = commits.filter((c) => c._chk && c._chk.checked).length;
+  $("sel-summary").innerHTML = `<span class="sel-count">${n}</span> selected`;
+}
+
+// Linear-interpolated percentile (matches latexsrc._percentile so server +
+// client agree on which commits land above the cutoff at a given pct).
+function jsPercentile(values, q) {
+  if (!values.length) return 0;
+  const s = [...values].sort((a, b) => a - b);
+  if (s.length === 1) return s[0];
+  const rank = (q / 100) * (s.length - 1);
+  const lo = Math.floor(rank), hi = Math.min(lo + 1, s.length - 1);
+  return s[lo] + (s[hi] - s[lo]) * (rank - lo);
+}
+
+function renderCommitGraph(h) {
+  const exp = $("commit-graph-explainer");
+  if (exp) {
+    exp.innerHTML = `
+      <b>Lines edited</b> = sum of added + deleted lines in <code>*.tex</code> per commit.
+      The last <b>${h.n}</b> commits that touched <code>*.tex</code> are shown
+      (oldest&nbsp;→&nbsp;newest). The mean is <b>${h.mean_churn.toFixed(0)}</b>.
+      Drag the slider below to tune the cutoff: each commit gets pre-checked
+      when its churn is <code>&gt;=</code> the chosen percentile of the churn
+      distribution. Re-check/uncheck anything by hand.
+    `;
+  }
+  const g = $("commit-graph");
+  g.innerHTML = "";
+  const maxC = Math.max(1, ...h.commits.map((c) => c.churn));
+  h.commits.forEach((c) => {
+    const col = document.createElement("div"); col.className = "commit-col";
+    const area = document.createElement("div"); area.className = "commit-bar-area";
+    const barEl = document.createElement("div");
+    barEl.className = "commit-bar" + (c.above_pct ? " sel" : "");
+    barEl.style.height = Math.max(2, Math.round(118 * c.churn / maxC)) + "px";
+    barEl.title = `${c.short} · churn ${c.churn} · ${c.subject}`;
+    area.appendChild(barEl);
+    const sha   = document.createElement("div"); sha.className   = "c-sha";   sha.textContent   = c.short;
+    const date  = document.createElement("div"); date.className  = "c-date";  date.textContent  = c.date || "";
+    const churn = document.createElement("div"); churn.className = "c-churn"; churn.textContent = c.churn;
+    const chkBox = document.createElement("div"); chkBox.className = "c-chk";
+    const chk = document.createElement("input"); chk.type = "checkbox"; chk.checked = !!c.above_pct;
+    chkBox.appendChild(chk);
+    const sync = () => { barEl.classList.toggle("sel", chk.checked); updateSelSummary(); };
+    chk.addEventListener("change", sync);
+    barEl.addEventListener("click", () => { chk.checked = !chk.checked; sync(); });
+    col.appendChild(area);
+    col.appendChild(sha);
+    col.appendChild(date);
+    col.appendChild(churn);
+    col.appendChild(chkBox);
+    g.appendChild(col);
+    c._chk = chk;
+    c._bar = barEl;
+  });
+  wirePercentileSlider(h);
+  applyPercentile(h, h.pct != null ? h.pct : 50.0);
+  updateSelSummary();
+}
+
+// Recompute pre-selection from a percentile + sync checkboxes/bar coloring.
+// The slider overrides any manual toggles -- moving the slider = "reset
+// selection to >= this pct"; manual toggles persist until the next drag.
+function applyPercentile(h, pct) {
+  const churns = h.commits.map((c) => c.churn);
+  const cutoff = jsPercentile(churns, pct);
+  let anyAbove = false;
+  h.commits.forEach((c) => {
+    c.above_pct = c.churn >= cutoff;
+    if (c.above_pct) anyAbove = true;
+  });
+  // Degenerate: if nothing crosses the cutoff (e.g., all zero), select all.
+  if (!anyAbove) h.commits.forEach((c) => { c.above_pct = true; });
+  h.pct = pct; h.pct_churn = cutoff;
+  h.commits.forEach((c) => {
+    if (c._chk) c._chk.checked = c.above_pct;
+    if (c._bar) c._bar.classList.toggle("sel", c.above_pct);
+  });
+  const pl = $("pct-label"); if (pl) pl.textContent = String(Math.round(pct));
+  const pc = $("pct-churn-val"); if (pc) pc.textContent = cutoff.toFixed(0);
+  updateSelSummary();
+}
+
+function wirePercentileSlider(h) {
+  const slider = $("pct-slider");
+  if (!slider) return;
+  // Seed slider position from the server's initial pct (default 50).
+  if (h.pct != null) slider.value = String(Math.round(h.pct));
+  // Replace any prior listener (re-rendering the graph re-wires).
+  slider.oninput = () => applyPercentile(h, parseFloat(slider.value));
+}
+
+async function doProbe(path) {
+  const lm = $("latex-meta");
+  if (!path) { lm.textContent = "select a folder first"; return; }
+  lm.textContent = "probing …";
+  try {
+    const r = await fetch("/probe_latex", {
+      method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ path }),
+    });
+    if (!r.ok) {
+      lm.innerHTML = `<span style="color:var(--err)">${esc(await r.text())}</span>`;
+      $("latex-detail").style.display = "none";
+      return;
+    }
+    PROBE = await r.json();
+    $("latex-detail").style.display = "block";
+    $("main-tex").value = PROBE.suggested_main_tex || "";
+    $("main-tex").placeholder = PROBE.suggested_main_tex || "auto-detect (no \\documentclass found)";
+    let msg = `${PROBE.tex_files.length} .tex files · entrypoint: ${PROBE.suggested_main_tex || "auto"}`;
+    if (PROBE.warning) msg += ` · ⚠️ ${PROBE.warning}`;
+    lm.textContent = msg;
+    const gc = $("git-controls");
+    if (PROBE.is_git && PROBE.history) {
+      gc.style.display = "block";
+      const h = PROBE.history;
+      $("git-note").textContent = `git repo${PROBE.dirty ? " · working tree has uncommitted changes" : ""}`
+        + ` · window: last ${h.n} .tex commits · mean churn ${h.mean_churn.toFixed(0)}`;
+      renderCommitGraph(h);
+      document.querySelector('input[name="gitmode"][value="latest"]').checked = true;
+      $("commit-graph-wrap").style.display = "none";
+    } else {
+      gc.style.display = "none";
+    }
+  } catch (e) {
+    lm.innerHTML = `<span style="color:var(--err)">${esc(String(e))}</span>`;
+  }
+}
+
+/* ---------------- server-side folder browser ---------------- */
+
+let BROWSE_PATH = null;
+
+async function openBrowser(path) {
+  const el = $("dir-browser");
+  el.style.display = "block";
+  el.innerHTML = `<div class="db-empty">loading …</div>`;
+  let d;
+  try {
+    const r = await fetch("/list_dirs", {
+      method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ path }),
+    });
+    if (!r.ok) { el.innerHTML = `<div class="err">${esc(await r.text())}</div>`; return; }
+    d = await r.json();
+  } catch (e) {
+    el.innerHTML = `<div class="err">${esc(String(e))}</div>`; return;
+  }
+  BROWSE_PATH = d.path;
+  const items = d.dirs.length
+    ? d.dirs.map((x) =>
+        `<div class="db-item" data-path="${esc(x.path)}">📁 ${esc(x.name)}`
+        + `${x.is_git ? ' <span class="tag-git">git</span>' : ""}`
+        + `${x.has_tex ? ' <span class="tag-tex">tex</span>' : ""}</div>`).join("")
+    : `<div class="db-empty">(no sub-folders here)</div>`;
+  const bookmarks = (d.bookmarks || []).map((b) =>
+    `<span class="db-bookmark" data-path="${esc(b.path)}">${esc(b.label)}</span>`).join("");
+  el.innerHTML = `
+    <input class="db-cur" type="text" value="${esc(d.path)}" spellcheck="false" />
+    ${bookmarks ? `<div class="db-bookmarks">${bookmarks}</div>` : ""}
+    <div class="db-actions">
+      <button type="button" class="db-use">✓ Use this folder</button>
+      ${d.parent ? '<button type="button" class="db-up">⬆ Up</button>' : ""}
+      <button type="button" class="db-cancel">Cancel</button>
+    </div>
+    <div class="db-list">${items}</div>`;
+  // Edit path + Enter = jump to that path
+  const cur = el.querySelector(".db-cur");
+  cur.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") { e.preventDefault(); openBrowser(cur.value); }
+    if (e.key === "Escape") { el.style.display = "none"; }
+  });
+  el.querySelectorAll(".db-bookmark").forEach((b) =>
+    b.addEventListener("click", () => openBrowser(b.dataset.path)));
+  el.querySelectorAll(".db-item").forEach((it) =>
+    it.addEventListener("click", () => openBrowser(it.dataset.path)));
+  const up = el.querySelector(".db-up");
+  if (up) up.addEventListener("click", () => openBrowser(d.parent));
+  el.querySelector(".db-cancel").addEventListener("click", () => { el.style.display = "none"; });
+  el.querySelector(".db-use").addEventListener("click", () => {
+    el.style.display = "none";
+    $("latex-path").value = BROWSE_PATH;
+    doProbe(BROWSE_PATH);
+  });
+}
+
+$("browse").addEventListener("click", () => openBrowser($("latex-path").value || null));
+
+document.querySelectorAll('input[name="gitmode"]').forEach((rb) => {
+  rb.addEventListener("change", () => {
+    const isHist = document.querySelector('input[name="gitmode"]:checked').value === "history";
+    $("commit-graph-wrap").style.display = isHist ? "block" : "none";
+  });
+});
+
+$("submit-latex").addEventListener("click", async () => {
+  const path = $("latex-path").value.trim();
+  const lm = $("latex-meta");
+  if (!path) { lm.textContent = "probe a dir first"; return; }
+  const mainTex = $("main-tex").value.trim();
+  let mode = "latest", commits = null, isHistory = false;
+  const gc = $("git-controls");
+  if (gc.style.display !== "none") {
+    const sel = document.querySelector('input[name="gitmode"]:checked');
+    if (sel && sel.value === "history") {
+      mode = "history"; isHistory = true;
+      commits = ((PROBE.history && PROBE.history.commits) || [])
+        .filter((c) => c._chk && c._chk.checked)
+        .map((c) => ({ sha: c.sha, short: c.short, date: c.date, subject: c.subject, churn: c.churn }));
+      if (!commits.length) { lm.textContent = "select at least one commit"; return; }
+    }
+  }
+  $("submit-latex").disabled = true;
+  lm.textContent = mode === "history" ? `scoring ${commits.length} commits …` : "submitting …";
+  beginJob(isHistory, "latex");
+  try {
+    const r = await fetch("/submit_latex", {
+      method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ path, main_tex: mainTex || null, mode, commits }),
+    });
+    if (!r.ok) { renderError(`submit failed: ${r.status} ${await r.text()}`, "latex"); return; }
+    const resp = await r.json();
+    lm.textContent = `submitted job ${resp.job_id} (${resp.mode})`;
+    await afterSubmit(resp, "latex");
+  } finally {
+    $("submit-latex").disabled = false;
+    setBusy(false);
+  }
+});
+
+/* ---------------- arXiv submit ---------------- */
+
+$("submit-arxiv").addEventListener("click", async () => {
+  const aid = $("arxiv-id").value.trim();
+  const am = $("arxiv-meta");
+  if (!aid) { am.textContent = "enter an arxiv id or URL"; return; }
+  const mainTex = $("arxiv-main-tex").value.trim();
+  $("submit-arxiv").disabled = true;
+  am.textContent = `fetching ${aid} …`;
+  beginJob(false, "arxiv");
+  try {
+    const agent = selectedAgent("arxiv");
+    const r = await fetch("/submit_arxiv", {
+      method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ arxiv_id: aid, main_tex: mainTex || null, agent }),
+    });
+    if (!r.ok) { renderError(`submit failed: ${r.status} ${await r.text()}`, "arxiv"); return; }
+    const resp = await r.json();
+    am.textContent = `submitted job ${resp.job_id} (arxiv ${resp.arxiv_id})${resp.agent ? " + " + resp.agent : ""}`;
+    if (resp.agent) startAgentStreaming(resp.job_id, "arxiv", resp.agent);
+    await afterSubmit(resp, "arxiv");
+  } finally {
+    $("submit-arxiv").disabled = false;
+    setBusy(false);
+  }
+});
+
+// Probe agent CLIs once at page load so the radios reflect ground truth on
+// the server (they're disabled if `claude --version` / `codex --version` failed).
+refreshAgentProbe();
+
+/* ---------------- Try-me Run buttons (bundled MAE assets) ---------------- */
+
+async function refreshExamplesProbe() {
+  let info = null;
+  try {
+    const r = await fetch("/examples");
+    if (r.ok) info = await r.json();
+  } catch (e) { /* leave buttons disabled */ }
+  ["pdf", "latex", "arxiv"].forEach((tab) => {
+    const btn = document.querySelector(`button[data-run="${tab}"]`);
+    const note = document.querySelector(`[data-run-note="${tab}"]`);
+    if (!btn) return;
+    const key = tab === "pdf" ? "mae_pdf" : tab === "latex" ? "mae_latex" : "mae_arxiv";
+    const entry = info && info[key];
+    if (entry && entry.available) {
+      btn.disabled = false;
+      if (note) note.textContent = entry.size_bytes
+        ? `(${(entry.size_bytes / (1024*1024)).toFixed(1)} MB)`
+        : (entry.arxiv_id ? `(id ${entry.arxiv_id})` : "");
+    } else {
+      btn.disabled = true;
+      if (note) note.textContent = "asset not found on server";
+    }
+  });
+}
+refreshExamplesProbe();
+
+// PDF: pull the bundled blob, wrap in File, drop it into the file input,
+// then trigger the normal submit handler so the agent toggle + everything
+// else just works.
+document.querySelector('button[data-run="pdf"]').addEventListener("click", async () => {
+  const btn = document.querySelector('button[data-run="pdf"]');
+  btn.disabled = true; btn.textContent = "fetching MAE PDF…";
+  try {
+    const r = await fetch("/examples/mae/pdf");
+    if (!r.ok) throw new Error(`status ${r.status}`);
+    const blob = await r.blob();
+    const file = new File([blob], "mae_anonymized.pdf", { type: "application/pdf" });
+    const dt = new DataTransfer(); dt.items.add(file);
+    $("pdf").files = dt.files;
+    $("submit").click();
+  } catch (e) {
+    meta.textContent = `couldn't fetch example: ${e}`;
+  } finally {
+    btn.disabled = false; btn.textContent = "Run example (anonymized MAE PDF)";
+  }
+});
+
+// LaTeX dir: ask the server for the bundled tree's absolute path, drop it
+// into the path field, run the same probe the Browse → Use-this-folder flow
+// uses (populates PROBE + shows the latex-detail panel + auto-fills the
+// entrypoint), then trigger /submit_latex via the existing button.
+document.querySelector('button[data-run="latex"]').addEventListener("click", async () => {
+  const btn = document.querySelector('button[data-run="latex"]');
+  btn.disabled = true; btn.textContent = "resolving bundled MAE LaTeX…";
+  try {
+    const r = await fetch("/examples/mae/latex_path");
+    if (!r.ok) throw new Error(`status ${r.status}`);
+    const data = await r.json();
+    $("latex-path").value = data.path;
+    await doProbe(data.path);
+    $("submit-latex").click();
+  } catch (e) {
+    $("latex-meta").textContent = `couldn't fetch example: ${e}`;
+  } finally {
+    btn.disabled = false; btn.textContent = "Run example (bundled MAE LaTeX dir)";
+  }
+});
+
+// arXiv: just drop the id into the input and let the existing handler do
+// the live download + paperprep + score (+ agent if toggled).
+document.querySelector('button[data-run="arxiv"]').addEventListener("click", async () => {
+  const btn = document.querySelector('button[data-run="arxiv"]');
+  btn.disabled = true; btn.textContent = "submitting arXiv 2111.06377…";
+  try {
+    $("arxiv-id").value = "2111.06377";
+    $("submit-arxiv").click();
+  } finally {
+    btn.disabled = false; btn.textContent = "Run example (live download of arXiv 2111.06377)";
+  }
+});
+
+// If the user reloaded mid-job, re-attach to any in-flight agent runs so the
+// streaming chat doesn't disappear. Looks for jobs whose agent_choice is
+// set and whose at-least-one variant hasn't reached a terminal state yet.
+async function resumeInflightAgentJobs() {
+  try {
+    const r = await fetch("/jobs");
+    if (!r.ok) return;
+    const jobs = await r.json();
+    // newest-first: the orchestrator's list keeps them in submission order.
+    const active = jobs.filter((j) => {
+      if (!j.agent_choice) return false;
+      const states = Object.values(j.agent_state || {});
+      // Resume only while at least one variant is still running OR the job
+      // itself is still running. Don't reattach if both variants are done.
+      const anyLive = states.some((s) => s === "queued" || s === "running");
+      return anyLive || j.state === "running";
+    });
+    if (!active.length) return;
+    // Pick the freshest one and infer its source tab from result.source_type
+    // (which the server stamps onto status.result after _write_done).
+    const j = active[active.length - 1];
+    const src = (j.result && j.result.source_type) || "pdf";
+    const mode = (src === "latex_arxiv") ? "arxiv"
+               : (src === "latex_dir" || src === "latex_history") ? "latex"
+               : "pdf";
+    // Set up the progress bar context so it shows up on the right tab.
+    JOB_MODE = mode;
+    if (Array.isArray(j.stages) && j.stages.length) STAGES = j.stages;
+    startAgentStreaming(j.job_id, mode, j.agent_choice);
+    // Also re-attach the status poll so the verdict eventually renders.
+    poll(j.job_id, mode).catch((e) => console.error("resume poll failed", e));
+  } catch (e) { /* nothing to resume */ }
+}
+resumeInflightAgentJobs();
+</script>
+</body>
+</html>

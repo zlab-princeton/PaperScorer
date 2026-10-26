@@ -1,0 +1,48 @@
+# paperlens-arxiv-server runtime config.
+#
+# Defaults match the RANKER.md / litsearch reranking experiment:
+#   - retriever: Qwen3-Embedding-0.6B FAISS over the per_venue 80K subset
+#   - reranker:  a PaperScorer vision model served by paperlens-serve (separate HTTP service)
+#   - score:     softmax([logp_accept, logp_reject]) -> p_accept in [0,1]
+#   - ranking:   0.3 * z(retriever_score) + 0.7 * p_accept (per-query z-norm)
+#   - retrieve:  fixed 200 candidates per query (k <= 200 trimmed at the end)
+#
+# This server is *orchestration only* -- no GPU, no model weights. The
+# upstream paperlens-serve does all model work (tokenization parity
+# with training via llamafactory.data.get_dataset).
+
+server:
+  host: 0.0.0.0
+  port: 8000
+
+retriever:
+  base_url: http://localhost:8001
+  topk_retrieve: 200          # fixed pool size per RANKER.md §3.1
+  timeout_seconds: 30.0
+
+# Upstream paperlens serve (paperlens-training-and-inference). Brings up
+# vLLM with the right ckpt + LF template; we just POST sharegpt rows.
+paperlens_serve:
+  base_url: http://localhost:8002
+  timeout_seconds: 600.0      # serve inference can be slow for 200 vision papers
+
+reranker:
+  domain: arxiv               # arxiv | iclr  (drives PROMPT_ARXIV vs PROMPT_ICLR)
+  modality: vision            # text | vision (drives sharegpt-row composition)
+
+# Where the per-arxiv_id page PNGs live on disk. Fallback order:
+#   1. this explicit value (uncomment + set), OR
+#   2. PAPERLENS_IMAGES_ROOT env var, OR
+#   3. ${PAPERLENS_DATA_ROOT}/images_arxiv
+# images_root: /path/to/images_arxiv
+
+cache:
+  db_path: ./cache/p_accept.sqlite
+
+search:
+  default_blend: default              # 'default' = the documented blend; 'p_accept_only' = no z-norm
+  blend_weight_retriever: 0.3
+  blend_weight_p_accept: 0.7
+  rerank_pool: 50                     # /search_compare: retrieve+rerank this many, then show
+                                      # base top-20 (retriever order) vs reranked top-20 (blend)
+  compare_top: 20                     # rows per column in the base-vs-reranked view

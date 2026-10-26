@@ -1,0 +1,19 @@
+server:
+  port: 8000
+  faiss_gpu: true
+  topk: 3
+
+retriever:
+  name: qwen3
+  model_path: Qwen/Qwen3-Embedding-4B
+  pooling_method: last_token
+  query_max_length: 256
+  use_fp16: true
+  task_description: "Given a query about academic research, retrieve relevant arXiv papers that address the topic"
+
+index:
+  # Paths are relative to the directory you launch the server from: put the
+  # files under ./data/ or edit these paths (or override, e.g. index.path=/abs/path).
+  path: data/qwen3_4b_embed/qwen3_Flat.index
+  corpus_path: data/arxiv/arxiv_wikiformat.jsonl
+  arxiv_metadata_path: data/arxiv/arxiv-metadata-oai-snapshot.jsonl

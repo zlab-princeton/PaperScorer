@@ -1,0 +1,42 @@
+### model
+model_name_or_path: Qwen/Qwen2.5-7B-Instruct
+trust_remote_code: true
+flash_attn: fa2
+enable_liger_kernel: true
+
+### method
+stage: sft
+do_train: true
+finetuning_type: full
+gradient_checkpointing: true
+gradient_checkpointing_kwargs: {"use_reentrant": false}
+
+### dataset (overridden via CLI)
+dataset: placeholder
+eval_dataset: placeholder
+do_eval: false
+template: qwen
+cutoff_len: 24480
+overwrite_cache: true
+preprocessing_num_workers: 16
+dataloader_num_workers: 4
+
+### output (overridden via CLI)
+output_dir: placeholder
+logging_steps: 10
+save_strategy: epoch
+save_total_limit: 6
+plot_loss: true
+overwrite_output_dir: true
+save_only_model: true
+report_to: none
+
+### train
+per_device_train_batch_size: 2
+gradient_accumulation_steps: 4    # 2*2*4 = 16 effective batch
+learning_rate: 2.0e-6
+num_train_epochs: 6.0
+lr_scheduler_type: cosine
+warmup_steps: 5
+bf16: true
+ddp_timeout: 180000000

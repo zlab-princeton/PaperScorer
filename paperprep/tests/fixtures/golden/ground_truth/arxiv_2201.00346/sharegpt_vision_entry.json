@@ -1,0 +1,36 @@
+{
+  "conversations": [
+    {
+      "from": "system",
+      "value": "You are an expert academic reviewer tasked with evaluating research papers."
+    },
+    {
+      "from": "human",
+      "value": "I am giving you a paper submitted to a top machine-learning venue. Predict its acceptance outcome.\n - Your answer will either be: \\boxed{Accept} or \\boxed{Reject}\n - Note: typical top-tier ML venues have ~25-30% acceptance rates\n\n# Detail-Preserving Transformer for Light Field Image Super-Resolution\n\n## Abstract\nRecently, numerous algorithms have been developed to tackle the problem of\nlight field super-resolution (LFSR), i.e., super-resolving low-resolution light\nfields to gain high-resolution views. Despite delivering encouraging results,\nthese approaches are all convolution-based, and are naturally weak in global\nrelation modeling of sub-aperture images necessarily to characterize the\ninherent structure of light fields. In this paper, we put forth a novel\nformulation built upon Transformers, by treating LFSR as a sequence-to-sequence\nreconstruction task. In particular, our model regards sub-aperture images of\neach vertical or horizontal angular view as a sequence, and establishes\nlong-range geometric dependencies within each sequence via a spatial-angular\nlocally-enhanced self-attention layer, which maintains the locality of each\nsub-aperture image as well. Additionally, to better recover image details, we\npropose a detail-preserving Transformer (termed as DPT), by leveraging gradient\nmaps of light field to guide the sequence learning. DPT consists of two\nbranches, with each associated with a Transformer for learning from an original\nor gradient image sequence. The two branches are finally fused to obtain\ncomprehensive feature representations for reconstruction. Evaluations are\nconducted on a number of light field datasets, including real-world scenes and\nsynthetic data. The proposed method achieves superior performance comparing\nwith other state-of-the-art schemes. Our code is publicly available at:\nhttps://github.com/BITszwang/DPT.\n\n<image> <image> <image> <image> <image> <image> <image>"
+    },
+    {
+      "from": "gpt",
+      "value": "Outcome: \\boxed{Accept}"
+    }
+  ],
+  "_metadata": {
+    "arxiv_id": "2201.00346",
+    "answer": "Accept",
+    "venue": "aaai",
+    "conference_year": 2022,
+    "arxiv_year": 2022,
+    "decision": "accept",
+    "training_label": "accept",
+    "citations": 141,
+    "pct_citation": 0.9242
+  },
+  "images": [
+    "page_1.png",
+    "page_2.png",
+    "page_3.png",
+    "page_4.png",
+    "page_5.png",
+    "page_6.png",
+    "page_7.png"
+  ]
+}

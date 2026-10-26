@@ -1,0 +1,44 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "arxiv_retriever"
+version = "0.1.0"
+description = "Standalone FAISS-based arXiv retrieval server with no-lookahead-bias filtering + DeepResearch agent integration."
+requires-python = ">=3.10"
+# Base deps = what the HTTP client + tool wrapper need. The FAISS server is
+# installed separately via conda (see conda-env.yml) because faiss-gpu is
+# conda-only.
+dependencies = [
+    "requests",
+    "pydantic",
+]
+
+[project.optional-dependencies]
+# For the DeepResearch agent runner side (uv/venv, NOT the conda retriever env).
+# Includes vLLM + qwen-agent so the runner can both serve the DR model and
+# build ReAct tool calls.
+deepresearch = [
+    "qwen-agent==0.0.26",
+    "openai==1.99.5",
+    "vllm==0.10.1",
+    "transformers==4.56.1",
+    "tqdm",
+    "json5",
+    "datasets",
+]
+
+# For the retrieval server side (conda env — listed here for reference only,
+# conda-env.yml is authoritative).
+server = [
+    "fastapi",
+    "uvicorn",
+    "omegaconf",
+    "transformers",
+    "pandas",
+    "datasets",
+]
+
+[tool.setuptools.packages.find]
+where = ["src"]

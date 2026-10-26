@@ -1,0 +1,48 @@
+# Conda environment for the arxiv_retriever FAISS server.
+#
+# faiss-gpu is conda-only, so the server must run under conda.
+# This env mirrors the SkyRL search retriever setup
+# (https://github.com/NovaSky-AI/SkyRL/blob/main/examples/train/search/README.md)
+# and adds omegaconf + pandas for the config-driven server and metadata filtering.
+#
+# Create / update with:
+#   conda env create -f conda-env.yml           # first time
+#   conda env update -f conda-env.yml --prune    # update existing
+#
+# Or, if you already have the SkyRL `retriever` env, just add the missing deps:
+#   conda activate retriever
+#   pip install omegaconf
+#   pip install -e .        # from this directory
+
+name: retriever
+channels:
+  - pytorch
+  - nvidia
+  - conda-forge
+  - defaults
+dependencies:
+  - python=3.10
+  - numpy=1.26.4
+  - faiss-gpu=1.8.0
+  - pip
+  - pip:
+      # PyTorch 2.6 with CUDA 12.4 (matches SkyRL README)
+      - --extra-index-url https://download.pytorch.org/whl/cu124
+      - torch==2.6.0
+      - torchvision==0.21.0
+      - torchaudio==2.6.0
+      # Retrieval stack
+      - transformers
+      - datasets
+      - pyserini
+      - huggingface_hub
+      # Server
+      - fastapi
+      - uvicorn
+      # Config
+      - omegaconf
+      - pandas
+      - pydantic
+      - requests
+      # Install this package itself in editable mode
+      - -e .
