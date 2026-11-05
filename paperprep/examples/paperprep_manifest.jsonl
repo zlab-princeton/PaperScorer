@@ -1,0 +1,4 @@
+{"id": "paper001", "type": "latex_dir", "path": "/data/papers/paper001/", "main_tex": "main.tex", "title": "Optional title override", "abstract": "Optional abstract override (skipped if MinerU extracts one)"}
+{"id": "paper002", "type": "latex_dir", "path": "/data/papers/paper002/"}
+{"id": "paper003", "type": "pdf", "path": "/data/papers/paper003.pdf"}
+{"id": "paper004", "type": "pdf", "path": "/data/papers/paper004.pdf", "title": "Another paper"}

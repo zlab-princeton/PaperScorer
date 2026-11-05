@@ -1,0 +1,36 @@
+{
+  "conversations": [
+    {
+      "from": "system",
+      "value": "You are an expert academic reviewer tasked with evaluating research papers."
+    },
+    {
+      "from": "human",
+      "value": "I am giving you a paper submitted to a top machine-learning venue. Predict its acceptance outcome.\n - Your answer will either be: \\boxed{Accept} or \\boxed{Reject}\n - Note: typical top-tier ML venues have ~25-30% acceptance rates\n\n# On the Vulnerability of Backdoor Defenses for Federated Learning\n\n## Abstract\nFederated Learning (FL) is a popular distributed machine learning paradigm\nthat enables jointly training a global model without sharing clients' data.\nHowever, its repetitive server-client communication gives room for backdoor\nattacks with aim to mislead the global model into a targeted misprediction when\na specific trigger pattern is presented. In response to such backdoor threats\non federated learning, various defense measures have been proposed. In this\npaper, we study whether the current defense mechanisms truly neutralize the\nbackdoor threats from federated learning in a practical setting by proposing a\nnew federated backdoor attack method for possible countermeasures. Different\nfrom traditional training (on triggered data) and rescaling (the malicious\nclient model) based backdoor injection, the proposed backdoor attack framework\n(1) directly modifies (a small proportion of) local model weights to inject the\nbackdoor trigger via sign flips; (2) jointly optimize the trigger pattern with\nthe client model, thus is more persistent and stealthy for circumventing\nexisting defenses. In a case study, we examine the strength and weaknesses of\nrecent federated backdoor defenses from three major categories and provide\nsuggestions to the practitioners when training federated models in practice.\n\n<image> <image> <image> <image> <image> <image> <image>"
+    },
+    {
+      "from": "gpt",
+      "value": "Outcome: \\boxed{Accept}"
+    }
+  ],
+  "_metadata": {
+    "arxiv_id": "2301.08170",
+    "answer": "Accept",
+    "venue": "aaai",
+    "conference_year": 2023,
+    "arxiv_year": 2023,
+    "decision": "accept",
+    "training_label": "accept",
+    "citations": 35,
+    "pct_citation": 0.783
+  },
+  "images": [
+    "page_1.png",
+    "page_2.png",
+    "page_3.png",
+    "page_4.png",
+    "page_5.png",
+    "page_6.png",
+    "page_7.png"
+  ]
+}

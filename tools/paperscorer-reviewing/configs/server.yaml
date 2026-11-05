@@ -1,0 +1,29 @@
+# paperlensreview runtime config.
+
+server:
+  host: 0.0.0.0
+  port: 8003                          # paperlensreview UI + API
+
+# Upstream paperlens serve (paperlens-training-and-inference). Brings up
+# vLLM with the right ckpt; we just POST sharegpt rows.
+paperlens_serve:
+  base_url: http://localhost:8002
+  timeout_seconds: 600.0
+
+# Upstream paperprep serve (PaperLens/paperprep). Persistent Flask wrapper
+# around the prep pipeline with a long-lived mineru-vllm-server child, so
+# we don't pay vLLM startup per upload. Launched by scripts/launch_local.sh.
+paperprep_serve:
+  base_url: http://localhost:8004
+  timeout_seconds: 600.0
+  # Per-upload work tree (paperlensreview-side); paperprep_serve has its own
+  # output_dir set via its CLI --output-dir flag in the launcher.
+  work_dir: ./paperlensreview_work
+
+# Choose which modality to score with. RANKER.md / our deployment uses
+# vision; text is faster but lower-signal.
+review:
+  modality: vision                    # text | vision
+  domain: arxiv                       # arxiv | iclr (drives the prompt)
+
+logging: {level: INFO}

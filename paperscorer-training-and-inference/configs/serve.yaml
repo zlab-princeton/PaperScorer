@@ -1,0 +1,41 @@
+# paperlens-serve runtime config.
+#
+# Defaults match RANKER.md §4.3 (paperlens_v_3b). Override ckpt_path to
+# switch to one of the other 7 published PaperLens checkpoints.
+#
+# Tokenization parity: every field below is what scripts/vllm_infer.py was
+# invoked with to produce litsearch_eval/passover/predictions_3b.parquet
+# in RANKER.md §6.1. Changing any of these (template, cutoff_len, image
+# pixel bounds) breaks idempotency with the gold parquet.
+
+server:
+  host: 0.0.0.0
+  port: 8002                    # paperlens-serve port (arxiv_retriever on 8001, paperlens-arxiv-server on 8000)
+
+model:
+  # HF repo id (downloaded by `uv run hf download skonan/paperscorer-7b-vision-arxiv`)
+  # or a local path. The 7B vision arxiv model is the default; the collection
+  # at https://huggingface.co/skonan has 7 other published variants.
+  ckpt_path: skonan/paperscorer-7b-vision-arxiv
+  template: qwen2_vl            # LF template name ('qwen' for text, 'qwen2_vl' for vision)
+  cutoff_len: 24480             # training-time cutoff (filtered24480)
+  enable_thinking: false        # disable Qwen3 thinking mode (PaperLens is Qwen2.5)
+  dtype: bfloat16
+
+vllm:
+  tensor_parallel_size: 1
+  pipeline_parallel_size: 1
+  gpu_memory_utilization: 0.60     # 7B needs more room than 3B; 0.60 + paperprep 0.30 = 0.90 (drop both to 0.55/0.25 if you OOM)
+  max_model_len: 24580          # cutoff_len + max_new_tokens; 24480 + small slack
+  disable_log_stats: true
+
+scoring:
+  positive_token: Accept
+  negative_token: Reject
+  decision_token_idx: 5         # position of Accept|Reject in "Outcome: \boxed{X"
+  max_new_tokens: 8             # enough to reach the decision token + a bit
+  image_max_pixels: 1003520     # 1024 * 980; matches training image pixel cap
+  image_min_pixels: 784         # 28 * 28; matches training image pixel floor
+
+logging:
+  level: INFO

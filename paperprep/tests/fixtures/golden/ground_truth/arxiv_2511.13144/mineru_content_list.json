@@ -1,0 +1,3993 @@
+[
+    {
+        "type": "text",
+        "text": "Personalized Federated Learning with Bidirectional Communication Compression via One-Bit Random Sketching",
+        "text_level": 1,
+        "bbox": [
+            86,
+            119,
+            911,
+            161
+        ],
+        "page_idx": 0
+    },
+    {
+        "type": "text",
+        "text": "Anonymous Submission",
+        "bbox": [
+            398,
+            180,
+            599,
+            196
+        ],
+        "page_idx": 0
+    },
+    {
+        "type": "text",
+        "text": "Anonymous Institute",
+        "bbox": [
+            429,
+            205,
+            566,
+            218
+        ],
+        "page_idx": 0
+    },
+    {
+        "type": "text",
+        "text": "Abstract",
+        "text_level": 1,
+        "bbox": [
+            250,
+            273,
+            313,
+            287
+        ],
+        "page_idx": 0
+    },
+    {
+        "type": "text",
+        "text": "Federated Learning (FL) enables collaborative training across decentralized data, but faces key challenges of bidirectional communication overhead and client-side data heterogeneity. To address communication costs while embracing data heterogeneity, we propose pFed1BS, a novel personalized federated learning framework that achieves extreme communication compression through one-bit random sketching. In personalized FL, the goal shifts from training a single global model to creating tailored models for each client. In our framework, clients transmit highly compressed one-bit sketches, and the server aggregates and broadcasts a global one-bit consensus. To enable effective personalization, we introduce a sign-based regularizer that guides local models to align with the global consensus while preserving local data characteristics. To mitigate the computational burden of random sketching, we employ the Fast Hadamard Transform for efficient projection. Theoretical analysis guarantees that our algorithm converges to a stationary neighborhood of the global potential function. Numerical simulations demonstrate that pFed1BS substantially reduces communication costs while achieving competitive performance compared to advanced communication-efficient FL algorithms.",
+        "bbox": [
+            102,
+            297,
+            460,
+            574
+        ],
+        "page_idx": 0
+    },
+    {
+        "type": "text",
+        "text": "Introduction",
+        "text_level": 1,
+        "bbox": [
+            228,
+            595,
+            334,
+            611
+        ],
+        "page_idx": 0
+    },
+    {
+        "type": "text",
+        "text": "Federated Learning (FL) is an increasingly popular paradigm in deep learning, designed to train machine learning models on distributed client data while preserving privacy  $(\\ref{eq:1})$ . Although FL performs well under ideal conditions of i.i.d. data and unconstrained communication, real-world deployments face two fundamental challenges inherent to its decentralized nature.",
+        "bbox": [
+            86,
+            616,
+            477,
+            712
+        ],
+        "page_idx": 0
+    },
+    {
+        "type": "text",
+        "text": "First, data across clients is typically non-i.i.d., reflecting diverse user behaviors and environments, which can severely degrade the performance of a single global model. Second, the communication overhead is often prohibitive, as repeatedly transmitting high-dimensional models between a central server and numerous clients is infeasible in bandwidth-limited networks. These challenges are particularly acute in critical application domains such as the massive Internet of Things (IoT), Vehicle-to-Everything (V2X) communications, and remote sensing networks. In these settings, where",
+        "bbox": [
+            86,
+            714,
+            477,
+            852
+        ],
+        "page_idx": 0
+    },
+    {
+        "type": "text",
+        "text": "devices operate under extremely constrained bandwidth, efficient communication is not merely an optimization but a fundamental necessity for the system to be viable.",
+        "bbox": [
+            519,
+            273,
+            911,
+            315
+        ],
+        "page_idx": 0
+    },
+    {
+        "type": "text",
+        "text": "To overcome the challenge of non-i.i.d. data, Personalized Federated Learning (PFL)  $(\\ref{eq:1})$  has been proposed. Here, it is crucial to distinguish the goal of \"personalization\" from merely \"addressing data heterogeneity.\" While the latter often aims to improve a single global model, PFL explicitly seeks to produce bespoke, customized models for individual clients that capture the unique characteristics of their local data. However, most PFL methods still incur significant communication costs by transmitting full-precision, high-dimensional model parameters or updates. This leads to a more precise and challenging research question: can we design a federated learning algorithm that not only provides high-quality personalized models for each client but also operates efficiently under extreme bidirectional communication constraints?",
+        "bbox": [
+            519,
+            316,
+            911,
+            523
+        ],
+        "page_idx": 0
+    },
+    {
+        "type": "text",
+        "text": "To reduce this burden, communication-efficient FL (CEFL) techniques have been developed, employing methods like prototype-learning (?), sparsification (??) and quantization (??). Among the most aggressive are one-bit compression strategies. For instance, OBDA (?) applies symmetric one-bit quantization for bidirectional communication, OBCSAA (?) combines a one-bit compressed sensing uplink with an uncompressed downlink, and zSignFed (?) stabilizes sign-based compression through a noisy perturbation scheme.",
+        "bbox": [
+            519,
+            525,
+            911,
+            662
+        ],
+        "page_idx": 0
+    },
+    {
+        "type": "text",
+        "text": "While these methods achieve remarkable compression rates, they primarily focus on training a single global model and thus overlook the critical challenge of data heterogeneity. To systematically analyze the limitations of existing work and motivate our contribution, we provide a comparison of representative algorithms in Table 1. The table reveals a clear research gap: no existing framework offers both extreme, bidirectional communication efficiency and native support for personalization.",
+        "bbox": [
+            519,
+            665,
+            911,
+            789
+        ],
+        "page_idx": 0
+    },
+    {
+        "type": "text",
+        "text": "In this paper, we bridge this gap by introducing pFed1BS, a novel PFL framework designed for extreme communication constraints based on one-bit random sketching. We formulate a joint optimization problem where clients learn personalized models by minimizing a local loss augmented with a sign-based regularizer. This regularizer encourages alignment with a global consensus vector derived by the server.",
+        "bbox": [
+            519,
+            791,
+            911,
+            888
+        ],
+        "page_idx": 0
+    },
+    {
+        "type": "page_footnote",
+        "text": "Copyright © 2026, Association for the Advancement of Artificial Intelligence (www.aaai.org). All rights reserved.",
+        "bbox": [
+            84,
+            863,
+            477,
+            888
+        ],
+        "page_idx": 0
+    },
+    {
+        "type": "table",
+        "img_path": "images/e4430589382de4bd166e30d5ab64a5fead2b0ef10dfd8a707a7b1ab9d18ecbb3.jpg",
+        "table_caption": [],
+        "table_footnote": [],
+        "table_body": "<table><tr><td rowspan=\"2\">Algorithm</td><td colspan=\"2\">Upload Compression</td><td colspan=\"2\">Download Compression</td><td rowspan=\"2\">Personalization Capability</td></tr><tr><td>Dim. Reduction</td><td>1-bit Quant.</td><td>Dim. Reduction</td><td>1-bit Quant.</td></tr><tr><td>FedAvg (?)</td><td>×</td><td>×</td><td>×</td><td>×</td><td>×</td></tr><tr><td>OBDA (?)</td><td>×</td><td>✓</td><td>×</td><td>✓</td><td>×</td></tr><tr><td>OBCSAA (?)</td><td>✓</td><td>✓</td><td>×</td><td>×</td><td>×</td></tr><tr><td>zSignFed (?)</td><td>×</td><td>✓</td><td>×</td><td>×</td><td>×</td></tr><tr><td>pFed1BS</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td></tr></table>",
+        "bbox": [
+            89,
+            65,
+            908,
+            209
+        ],
+        "page_idx": 1
+    },
+    {
+        "type": "text",
+        "text": "Table 1: Comparisons of communication-efficient schemes and personalization Capabilities in Federated Learning Algorithms.",
+        "bbox": [
+            83,
+            217,
+            911,
+            233
+        ],
+        "page_idx": 1
+    },
+    {
+        "type": "text",
+        "text": "Critically, our framework achieves bidirectional compression: clients upload one-bit sketches of their local models, and the server broadcasts a compact one-bit consensus vector. This contrasts sharply with prior CEFL methods that either compress only the uplink or require a full-model downlink. Figure 1 provides an overview of our proposed framework.",
+        "bbox": [
+            81,
+            260,
+            478,
+            358
+        ],
+        "page_idx": 1
+    },
+    {
+        "type": "text",
+        "text": "Main Contributions",
+        "text_level": 1,
+        "bbox": [
+            83,
+            372,
+            240,
+            386
+        ],
+        "page_idx": 1
+    },
+    {
+        "type": "text",
+        "text": "This paper proposes pFed1BS, as shown in Figure 1, a personalized federated learning framework designed for settings with extreme communication constraints. Our main contributions are as follows:",
+        "bbox": [
+            81,
+            393,
+            480,
+            450
+        ],
+        "page_idx": 1
+    },
+    {
+        "type": "list",
+        "sub_type": "text",
+        "list_items": [
+            "- We are the first to formulate the problem of personalized learning with one-bit bidirectional communication as a principled joint optimization problem. Our framework defines two coupled objectives: a client-side objective that balances local empirical risk with a novel sign-based regularizer for global alignment, and a server-side objective for optimally aggregating the compressed client signals.",
+            "- We make our framework practical for large-scale models by introducing a highly efficient implementation of the required sketching operations. By leveraging the Fast Hadamard Transform (FHT), we reduce the complexity of the client-side sketching operation from quadratic,  $\\mathcal{O}(mn)$ , to near-linear,  $\\mathcal{O}(n\\log n)$ , without performance degradation.",
+            "- We provide the comprehensive convergence analysis for this challenging alternating optimization scheme. We formally prove that pFed1BS converges to a stationary neighborhood of a global potential function, rigorously accounting for the interplay between personalization, local stochastic updates, and errors introduced by one-bit sketching and server aggregation.",
+            "- We conduct extensive experiments on benchmark datasets (MNIST, FMNIST, CIFAR-10, CIFAR-100, and SVHN). Our results demonstrate that pFed1BS achieves a superior trade-off between accuracy and communication. Remarkably, pFed1BS matches or exceeds the performance of state-of-the-art one-bit FL algorithms while operating at a fraction of the communication cost and, crucially, providing personalization that they lack."
+        ],
+        "bbox": [
+            89,
+            457,
+            478,
+            888
+        ],
+        "page_idx": 1
+    },
+    {
+        "type": "text",
+        "text": "Related Works",
+        "text_level": 1,
+        "bbox": [
+            516,
+            258,
+            635,
+            273
+        ],
+        "page_idx": 1
+    },
+    {
+        "type": "text",
+        "text": "Our work is closely related to the following topics:",
+        "bbox": [
+            516,
+            277,
+            854,
+            292
+        ],
+        "page_idx": 1
+    },
+    {
+        "type": "text",
+        "text": "Personalized Federated Learning. To address the challenge of heterogeneous datasets, a rich body of work has emerged in Personalized Federated Learning (PFL). These approaches can be broadly categorized into local adaptation (????), multi-task learning (??), and architecture-based methods (??). For instance, regularization-based methods like pFedMe (?) and Ditto (?) learn personalized models by augmenting the local objective with a proximal term that regularizes it towards a global model. Architecture-based methods, such as FedRep (?) learn a shared feature representation while personalizing the final model layers. More recently, DisPFL (?) learns personalized sparse masks for each client. However, these advanced PFL methods typically inherit the communication bottlenecks of standard FL, as they still presuppose the transmission of full-precision, high-dimensional model parameters or updates.",
+        "bbox": [
+            514,
+            297,
+            913,
+            522
+        ],
+        "page_idx": 1
+    },
+    {
+        "type": "text",
+        "text": "Communication-Efficient Federated Learning. In a parallel research thrust, numerous methods have been proposed to alleviate the communication burden in FL. One prominent approach is update sparsification, where only a fraction of the model update is transmitted, using techniques like Top-k selection (?) or identifying parameters with high-magnitude changes (?) Another major direction is quantization, which reduces the numerical precision of the transmitted updates (????). A critical limitation of these popular techniques, however, is that they typically compress only the uplink (client-to-server) channel, still requiring the server to broadcast a full-precision, high-dimensional model.",
+        "bbox": [
+            514,
+            527,
+            911,
+            695
+        ],
+        "page_idx": 1
+    },
+    {
+        "type": "text",
+        "text": "More aggressive strategies leverage techniques from signal processing. Some works employ Compressed Sensing (CS) to project sparse updates into a low-dimensional subspace  $(\\ref{eq:1})$ . Others explore one-bit quantization schemes, sometimes combined with over-the-air computation in wireless settings, to achieve extreme compression  $(\\ref{eq:2})$ . While highly efficient, these methods are fundamentally designed to learn a single global model and lack mechanisms to handle data heterogeneity.",
+        "bbox": [
+            514,
+            695,
+            913,
+            819
+        ],
+        "page_idx": 1
+    },
+    {
+        "type": "text",
+        "text": "pFed1BS uniquely bridges these two disparate lines of research. It is the first work to integrate a bidirectional, one-bit sketching mechanism within a principled PFL formulation, thereby explicitly and simultaneously tackling the dual challenges of communication efficiency and data heterogeneity.",
+        "bbox": [
+            514,
+            819,
+            913,
+            888
+        ],
+        "page_idx": 1
+    },
+    {
+        "type": "image",
+        "img_path": "images/95c834764fb94b091c04ad4351ce55e2be8b040aeacc27d9a2dfa7cb14f807a2.jpg",
+        "image_caption": [
+            "Figure 1: An overview of our proposed framework. At round  $t$ , each client performs a local update using a sign-based regularizer with the global one-bit vector  $\\mathbf{v}^t$ . Then each client projects and quantizes the updated local model to one bit vector  $\\mathrm{sign}(\\Phi \\mathbf{w}_k^{t+1})$ , and then transmits it to the server. The server aggregates all clients' one-bit vectors to form the next global one-bit vector  $\\mathbf{v}^{t+1}$ , which is broadcast for the next round."
+        ],
+        "image_footnote": [],
+        "bbox": [
+            96,
+            68,
+            903,
+            354
+        ],
+        "page_idx": 2
+    },
+    {
+        "type": "text",
+        "text": "The Proposed Method",
+        "text_level": 1,
+        "bbox": [
+            184,
+            450,
+            375,
+            467
+        ],
+        "page_idx": 2
+    },
+    {
+        "type": "text",
+        "text": "This section presents our proposed method, pFed1BS. We begin by formulating the overall optimization framework that governs the collaborative learning process by introducing a sign-based regularizer and random sketching. Subsequently, we describe the iterative algorithm, specifying distinct client-server procedures for optimizing this objective. Finally, to address the computational bottleneck posed by the high-dimensional random sketching in local training, we introduce an efficient sketching method based on the Fast Hadamard Transform.",
+        "bbox": [
+            81,
+            470,
+            478,
+            609
+        ],
+        "page_idx": 2
+    },
+    {
+        "type": "text",
+        "text": "Optimization Framework",
+        "text_level": 1,
+        "bbox": [
+            83,
+            622,
+            284,
+            638
+        ],
+        "page_idx": 2
+    },
+    {
+        "type": "text",
+        "text": "In a federated learning system with  $K$  clients, our goal is to move beyond learning a single global model and instead learn a personalized model  $\\boldsymbol{w}_k \\in \\mathbb{R}^n$  for each client  $k \\in \\{1, \\dots, K\\}$ . The system aggregates client contributions using weights  $p_k$ , which are typically set based on the client's dataset size, e.g.,  $p_k = N_k / \\sum_{i=1}^{K} N_i$ , where  $N_k$  is the number of local samples. The local objective for each client is to minimize the expected loss over its private data distribution  $\\mathcal{P}_k$",
+        "bbox": [
+            81,
+            641,
+            478,
+            768
+        ],
+        "page_idx": 2
+    },
+    {
+        "type": "equation",
+        "text": "\n$$\nf _ {k} (\\boldsymbol {w} _ {k}) = \\mathbb {E} _ {\\xi_ {k} \\sim \\mathcal {P} _ {k}} [ \\hat {f} _ {k} (\\boldsymbol {w} _ {k}; \\xi_ {k}) ], \\tag {1}\n$$\n",
+        "text_format": "latex",
+        "bbox": [
+            173,
+            776,
+            478,
+            795
+        ],
+        "page_idx": 2
+    },
+    {
+        "type": "text",
+        "text": "where  $\\xi_{k}$  is a data sample drawn from  $\\mathcal{P}_k$  and  $\\hat{f}_k(\\pmb {w}_k;\\xi_k)$  is the loss function for a single sample  $\\xi_{k}$ . In practice, the true gradient  $\\nabla f_{k}(\\pmb{w}_{k})$  is intractable, so we rely on stochastic gradients computed on mini-batches to approximate it.",
+        "bbox": [
+            81,
+            803,
+            478,
+            861
+        ],
+        "page_idx": 2
+    },
+    {
+        "type": "text",
+        "text": "To drastically reduce communication costs, our core technical idea is to replace the transmission of high-dimensional",
+        "bbox": [
+            81,
+            861,
+            480,
+            888
+        ],
+        "page_idx": 2
+    },
+    {
+        "type": "text",
+        "text": "models  $\\pmb{w}_k$  with low-dimensional one-bit sketches. Specifically, each client transmits only  $\\mathrm{sign}(\\Phi \\pmb{w}_k)$ , where  $\\Phi \\in \\mathbb{R}^{m\\times n}$  is a random projection matrix.",
+        "bbox": [
+            514,
+            452,
+            911,
+            494
+        ],
+        "page_idx": 2
+    },
+    {
+        "type": "text",
+        "text": "This radical compression necessitates a new way for the server and clients to interact. To this end, we introduce a global consensus vector  $\\pmb{v} \\in \\{\\pm 1\\}^m$ , which the server aggregates from the clients' one-bit sketches. This vector  $\\pmb{v}$  is then broadcast back to clients and incorporated into their local optimization, which acts as a target, guiding the local model  $\\pmb{w}_k$  to produce a projection  $\\Phi \\pmb{w}_k$  whose signs align with  $\\pmb{v}$ .",
+        "bbox": [
+            514,
+            494,
+            913,
+            604
+        ],
+        "page_idx": 2
+    },
+    {
+        "type": "text",
+        "text": "To enforce this guidance, we introduce a sign-based regularizer, denoted by  $g(\\pmb{v}, \\pmb{\\Phi}\\pmb{w}_k)$ , which measures the disagreement between the signs of the projected model  $\\pmb{\\Phi}\\pmb{w}_k$  and the global consensus  $\\pmb{v}$ . We define this regularizer using the one-sided  $\\ell_1$ -norm:",
+        "bbox": [
+            514,
+            604,
+            911,
+            674
+        ],
+        "page_idx": 2
+    },
+    {
+        "type": "equation",
+        "text": "\n$$\ng (\\boldsymbol {x}, \\boldsymbol {y}) = \\| [ \\boldsymbol {x} \\odot \\boldsymbol {y} ] _ {-} \\| _ {1}, \\text {w h e r e} [ x _ {i} ] _ {-} = \\min  (x _ {i}, 0). \\tag {2}\n$$\n",
+        "text_format": "latex",
+        "bbox": [
+            527,
+            676,
+            911,
+            694
+        ],
+        "page_idx": 2
+    },
+    {
+        "type": "text",
+        "text": "For the client-side objective, where  $\\pmb{v}$  is a sign vector and  $\\Phi \\pmb{w}_k$  is real-valued, this regularizer is equivalent to:",
+        "bbox": [
+            516,
+            696,
+            913,
+            726
+        ],
+        "page_idx": 2
+    },
+    {
+        "type": "equation",
+        "text": "\n$$\ng (\\boldsymbol {v}, \\boldsymbol {\\Phi} \\boldsymbol {w} _ {k}) = \\frac {1}{2} \\left(\\| \\boldsymbol {\\Phi} \\boldsymbol {w} _ {k} \\| _ {1} - \\langle \\boldsymbol {v}, \\boldsymbol {\\Phi} \\boldsymbol {w} _ {k} \\rangle\\right). \\tag {3}\n$$\n",
+        "text_format": "latex",
+        "bbox": [
+            576,
+            729,
+            911,
+            756
+        ],
+        "page_idx": 2
+    },
+    {
+        "type": "text",
+        "text": "Furthermore, to prevent the personalized models  $\\boldsymbol{w}_k$  from diverging or growing unbounded during local training due to the absence of global data constraints, we introduce an  $\\ell_2$  penalty term.",
+        "bbox": [
+            514,
+            758,
+            913,
+            815
+        ],
+        "page_idx": 2
+    },
+    {
+        "type": "text",
+        "text": "This leads to the following regularized client objective:",
+        "bbox": [
+            532,
+            815,
+            897,
+            829
+        ],
+        "page_idx": 2
+    },
+    {
+        "type": "equation",
+        "text": "\n$$\nF _ {k} \\left(\\boldsymbol {w} _ {k}; \\boldsymbol {v}\\right) = f _ {k} \\left(\\boldsymbol {w} _ {k}\\right) + \\lambda g (\\boldsymbol {v}, \\boldsymbol {\\Phi} \\boldsymbol {w} _ {k}) + \\frac {\\mu}{2} \\| \\boldsymbol {w} _ {k} \\| _ {2} ^ {2}, \\tag {4}\n$$\n",
+        "text_format": "latex",
+        "bbox": [
+            537,
+            833,
+            911,
+            858
+        ],
+        "page_idx": 2
+    },
+    {
+        "type": "text",
+        "text": "where  $\\lambda$  controls the strength of the sign alignment and  $\\mu$  controls the norm of model parameters.",
+        "bbox": [
+            514,
+            859,
+            911,
+            888
+        ],
+        "page_idx": 2
+    },
+    {
+        "type": "text",
+        "text": "This form, however, is non-smooth due to the  $\\ell_1$ -norm in (3), posing a challenge for gradient-based optimization. To enable gradient-based optimization, we employ a continuously differentiable approximation for the  $\\ell_1$ -norm. A standard approach is to approximate  $\\|z\\|_1$  with  $h_\\gamma(z)$ , where  $h_\\gamma(z) = \\frac{1}{\\gamma} \\sum_{i=1}^m \\log(\\cosh(\\gamma z_i))$ . So we obtain a smoothed regularizer",
+        "bbox": [
+            81,
+            68,
+            478,
+            170
+        ],
+        "page_idx": 3
+    },
+    {
+        "type": "equation",
+        "text": "\n$$\n\\tilde {g} (\\boldsymbol {v}, \\boldsymbol {\\Phi} \\boldsymbol {w} _ {k}) = h _ {\\gamma} (\\boldsymbol {\\Phi} \\boldsymbol {w} _ {k}) - \\langle \\boldsymbol {v}, \\boldsymbol {\\Phi} \\boldsymbol {w} _ {k} \\rangle , \\tag {5}\n$$\n",
+        "text_format": "latex",
+        "bbox": [
+            153,
+            176,
+            478,
+            193
+        ],
+        "page_idx": 3
+    },
+    {
+        "type": "text",
+        "text": "and a smoothed client-side objective  $\\tilde{F}_k(\\pmb {w}_k;\\pmb {v})$",
+        "bbox": [
+            83,
+            200,
+            398,
+            218
+        ],
+        "page_idx": 3
+    },
+    {
+        "type": "equation",
+        "text": "\n$$\n\\begin{array}{l} \\tilde {F} _ {k} (\\boldsymbol {w} _ {k}; \\boldsymbol {v}) = f _ {k} (\\boldsymbol {w} _ {k}) + \\lambda \\tilde {g} (\\boldsymbol {v}, \\boldsymbol {\\Phi} \\boldsymbol {w} _ {k}) + \\frac {\\mu}{2} \\| \\boldsymbol {w} _ {k} \\| _ {2} ^ {2} \\\\ = f _ {k} \\left(\\boldsymbol {w} _ {k}\\right) + \\lambda \\left(h _ {\\gamma} \\left(\\boldsymbol {\\Phi} \\boldsymbol {w} _ {k}\\right) - \\langle \\boldsymbol {v}, \\boldsymbol {\\Phi} \\boldsymbol {w} _ {k} \\rangle\\right) + \\frac {\\mu}{2} \\| \\boldsymbol {w} _ {k} \\| _ {2} ^ {2}, \\tag {6} \\\\ \\end{array}\n$$\n",
+        "text_format": "latex",
+        "bbox": [
+            91,
+            227,
+            478,
+            281
+        ],
+        "page_idx": 3
+    },
+    {
+        "type": "text",
+        "text": "where the factor of  $\\frac{1}{2}$  can be absorbed into the hyperparameter  $\\lambda$ .",
+        "bbox": [
+            81,
+            287,
+            478,
+            316
+        ],
+        "page_idx": 3
+    },
+    {
+        "type": "text",
+        "text": "The gradient of the smoothed penalty term with respect to  $\\boldsymbol{w}_k$  is then given by:",
+        "bbox": [
+            83,
+            316,
+            478,
+            345
+        ],
+        "page_idx": 3
+    },
+    {
+        "type": "equation",
+        "text": "\n$$\n\\nabla \\tilde {g} (\\boldsymbol {v}, \\boldsymbol {\\Phi} \\boldsymbol {w} _ {k}) = \\boldsymbol {\\Phi} ^ {\\top} (\\tanh  (\\gamma \\boldsymbol {\\Phi} \\boldsymbol {w} _ {k}) - \\boldsymbol {v}). \\tag {7}\n$$\n",
+        "text_format": "latex",
+        "bbox": [
+            140,
+            352,
+            478,
+            369
+        ],
+        "page_idx": 3
+    },
+    {
+        "type": "text",
+        "text": "As the smoothing parameter  $\\gamma \\rightarrow \\infty$ , the term  $\\tanh (\\gamma \\Phi w_k) \\approx \\mathrm{sign}(\\Phi w_k)$ . Therefore, the gradient effectively penalizes the misalignment between the signs of the projected local model and the global consensus vector  $\\mathbf{v}$ , driving the local updates towards alignment.",
+        "bbox": [
+            81,
+            377,
+            478,
+            446
+        ],
+        "page_idx": 3
+    },
+    {
+        "type": "text",
+        "text": "Having defined how each client utilizes the global vector  $\\pmb{v}$ , we now address how the server generates it. At the end of each round, the server receives a one-bit sketch  $z_{k} = \\mathrm{sign}(\\Phi \\pmb{w}_{k})$  from each participating client  $k$ . The server's task is to aggregate these sketches into a new consensus vector  $\\pmb{v}^{t + 1}$  that best represents the collective information.",
+        "bbox": [
+            81,
+            446,
+            478,
+            529
+        ],
+        "page_idx": 3
+    },
+    {
+        "type": "text",
+        "text": "We formulate this as an optimization problem where the server seeks to find a vector  $\\boldsymbol{v} \\in \\{\\pm 1\\}^m$  that minimizes the total weighted disagreement with the received client sketches:",
+        "bbox": [
+            81,
+            529,
+            478,
+            583
+        ],
+        "page_idx": 3
+    },
+    {
+        "type": "equation",
+        "text": "\n$$\n\\min  _ {\\boldsymbol {v} \\in \\{\\pm 1 \\} ^ {m}} \\sum_ {k = 1} ^ {K} p _ {k} \\tilde {g} (\\boldsymbol {v}, \\boldsymbol {z} _ {k}). \\tag {8}\n$$\n",
+        "text_format": "latex",
+        "bbox": [
+            197,
+            582,
+            478,
+            623
+        ],
+        "page_idx": 3
+    },
+    {
+        "type": "text",
+        "text": "Overall, we formulate a bilevel optimization problem as follows",
+        "bbox": [
+            83,
+            626,
+            478,
+            652
+        ],
+        "page_idx": 3
+    },
+    {
+        "type": "equation",
+        "text": "\n$$\n\\text {S e r v e r :} \\quad \\min  _ {\\boldsymbol {v} \\in \\{\\pm 1 \\} ^ {m}} \\sum_ {k = 1} ^ {K} p _ {k} \\tilde {g} (\\boldsymbol {v}, \\operatorname {s i g n} (\\boldsymbol {\\Phi} \\boldsymbol {w} _ {k} ^ {\\star} (\\boldsymbol {v})))\n$$\n",
+        "text_format": "latex",
+        "bbox": [
+            106,
+            659,
+            421,
+            700
+        ],
+        "page_idx": 3
+    },
+    {
+        "type": "equation",
+        "text": "\n$$\n\\begin{array}{l} \\text {C l i e n t s :} \\quad \\boldsymbol {w} _ {k} ^ {\\star} (\\boldsymbol {v}) \\in \\arg \\min  _ {\\boldsymbol {w} _ {k} \\in \\mathbb {R} ^ {n}} F _ {k} (\\boldsymbol {w} _ {k}; \\boldsymbol {v}) = f _ {k} (\\boldsymbol {w} _ {k}) \\\\ + \\lambda \\tilde {g} (\\boldsymbol {v}, \\boldsymbol {\\Phi} \\boldsymbol {w} _ {k}) + \\frac {\\mu}{2} \\| \\boldsymbol {w} _ {k} \\| _ {2} ^ {2}, \\tag {9} \\\\ \\end{array}\n$$\n",
+        "text_format": "latex",
+        "bbox": [
+            104,
+            703,
+            477,
+            753
+        ],
+        "page_idx": 3
+    },
+    {
+        "type": "text",
+        "text": "where  $\\pmb{w}_k^{\\star}(\\pmb{v})$  denotes the optimal solution of the  $k$ -th low-level problem for a given upper-level variable  $\\pmb{v}$ .",
+        "bbox": [
+            81,
+            760,
+            478,
+            790
+        ],
+        "page_idx": 3
+    },
+    {
+        "type": "text",
+        "text": "Algorithm",
+        "text_level": 1,
+        "bbox": [
+            83,
+            800,
+            169,
+            816
+        ],
+        "page_idx": 3
+    },
+    {
+        "type": "text",
+        "text": "To solve the joint optimization problem defined in Eq. (9), we propose an alternating optimization scheme named pFed1BS. The core idea is to iteratively perform (i) local optimization on the client side to update the personalized models  $\\boldsymbol{w}_k$  and (ii) global aggregation on the server side",
+        "bbox": [
+            81,
+            818,
+            478,
+            888
+        ],
+        "page_idx": 3
+    },
+    {
+        "type": "text",
+        "text": "Algorithm 1: pFed1BS: Personalized Federated Learning via One-Bit Random Sketching",
+        "bbox": [
+            517,
+            66,
+            913,
+            97
+        ],
+        "page_idx": 3
+    },
+    {
+        "type": "list",
+        "sub_type": "text",
+        "list_items": [
+            "1: Input: Total rounds  $T$ , local steps  $R$ , learning rate  $\\eta$ , regularization hyperparameters  $\\lambda, \\mu$",
+            "2: Server Initialized: Model  $\\boldsymbol{w}^0$ , random seed  $I$ . Broadcasts  $I$  to all clients. Initialized  $\\boldsymbol{v}^0 = \\mathbf{0}$ .",
+            "3: for  $t = 0$  to  $T - 1$  do",
+            "4: for  $k = 1$  to  $K$  in parallel do",
+            "5:  $\\pmb{z}_k^{t + 1},\\pmb{w}_k^{t + 1}\\gets \\bar{\\text{ClientUpdate}} (k,\\pmb{w}_k^t,\\pmb{v}^t)$",
+            "6: end for",
+            "7: Random sample a subset of clients  $S^t$",
+            "8: Aggregate signs:  $\\pmb{v}^{t + 1} = \\mathrm{sign}\\left(\\sum_{k\\in S^t}p_kz_k^{t + 1}\\right)$",
+            "9: end for"
+        ],
+        "bbox": [
+            524,
+            101,
+            911,
+            252
+        ],
+        "page_idx": 3
+    },
+    {
+        "type": "list",
+        "sub_type": "text",
+        "list_items": [
+            "10: Function ClientUpdate  $(k, \\boldsymbol{w}_k^t, \\boldsymbol{v}^t)$ :",
+            "11: Client  $k$  Initializes:  $\\pmb{w}_{k,0}^{t + 1} = \\pmb{w}_k^t$",
+            "12: for  $r = 0$  to  $R - 1$  do",
+            "13: Sample a mini-batch  $\\mathcal{B}_{k,r}$  from data distribution  $\\mathcal{P}_k$",
+            "14: Compute gradient:  $\\nabla \\hat{f}_k(\\pmb{w}_{k,r}^{t+1};\\mathcal{B}_{k,r})$  =  $\\frac{1}{|\\mathcal{B}_{k,r}|}\\sum_{\\xi_k\\in \\mathcal{B}_{k,r}}\\nabla \\hat{f}_k(\\pmb{w}_{k,r}^{t+1};\\xi_k)$",
+            "15: Compute regularization subgradient:  $\\nabla \\tilde{g} (\\pmb {v}^t,\\pmb {\\Phi}\\pmb{w}_{k,r}^{t + 1}) = \\pmb{\\Phi}^{\\top}(\\tanh (\\gamma \\pmb {\\Phi}\\pmb{w}_{k,r}^{t + 1}) - \\pmb{v}^t)$",
+            "16: Update local model:  $\\pmb{w}_{k,r+1}^{t+1} \\gets \\pmb{w}_{k,r}^{t+1} - \\eta (\\nabla \\hat{f}_k(\\pmb{w}_{k,r}^{t+1};\\mathcal{B}_{k,r}) + \\lambda \\nabla \\tilde{g}(\\pmb{v}^t, \\pmb{\\Phi}\\pmb{w}_{k,r}^{t+1}) + \\mu \\pmb{w}_{k,r}^{t+1})$",
+            "17: end for",
+            "18: return sign  $(\\Phi \\pmb{w}_{k,R}^{k + 1})$ $w_{k,R}^{k + 1}$"
+        ],
+        "bbox": [
+            519,
+            258,
+            911,
+            455
+        ],
+        "page_idx": 3
+    },
+    {
+        "type": "text",
+        "text": "to update the consensus vector  $\\pmb{v}$ . The overall procedure is presented in Algorithm 1. We describe the specifics of each component below.",
+        "bbox": [
+            514,
+            484,
+            913,
+            525
+        ],
+        "page_idx": 3
+    },
+    {
+        "type": "text",
+        "text": "At the start of round  $t$ , each participating client  $k \\in S^t$  receives the global consensus vector  $\\pmb{v}^t$ . The client's goal is to update its local model  $\\pmb{w}_k^t$  by approximately minimizing its smoothed objective  $\\tilde{F}_k(\\pmb{w}_k; \\pmb{v}^t)$  (from Eq. (6)). As shown in Line 16 of Algorithm 1, the client performs  $R$  steps of stochastic gradient descent. For local step  $r$ , the update is",
+        "bbox": [
+            514,
+            525,
+            913,
+            612
+        ],
+        "page_idx": 3
+    },
+    {
+        "type": "equation",
+        "text": "\n$$\n\\boldsymbol {w} _ {k, r + 1} = \\boldsymbol {w} _ {k, r} - \\eta \\nabla \\tilde {F} _ {k} \\left(\\boldsymbol {w} _ {k, r}; \\boldsymbol {v} ^ {t}\\right). \\tag {10}\n$$\n",
+        "text_format": "latex",
+        "bbox": [
+            594,
+            616,
+            911,
+            633
+        ],
+        "page_idx": 3
+    },
+    {
+        "type": "text",
+        "text": "The gradient  $\\nabla \\tilde{F}_k$  is composed of the standard task gradient and our regularization terms:",
+        "bbox": [
+            514,
+            638,
+            913,
+            667
+        ],
+        "page_idx": 3
+    },
+    {
+        "type": "equation",
+        "text": "\n$$\n\\begin{array}{l} \\nabla \\tilde {F} _ {k} \\left(\\boldsymbol {w} _ {k, r} ^ {t}; \\boldsymbol {v} ^ {t}\\right) = \\nabla f _ {k} \\left(\\boldsymbol {w} _ {k, r} ^ {t}\\right) + \\lambda \\boldsymbol {\\Phi} ^ {\\top} \\left[ \\tanh  \\left(\\gamma \\boldsymbol {\\Phi} \\boldsymbol {w} _ {k, r} ^ {t}\\right) - \\boldsymbol {v} ^ {t} \\right] \\\\ + \\mu \\boldsymbol {w} _ {k, r} ^ {t}. \\tag {11} \\\\ \\end{array}\n$$\n",
+        "text_format": "latex",
+        "bbox": [
+            517,
+            670,
+            913,
+            710
+        ],
+        "page_idx": 3
+    },
+    {
+        "type": "text",
+        "text": "Since the calculation of  $\\nabla f_{k}(\\boldsymbol{w}_{k,r}^{t})$  is intractable, we use the mean over a mini-batch of data  $\\mathcal{B}_{k,r}$  from  $\\mathcal{P}_k$",
+        "bbox": [
+            514,
+            714,
+            913,
+            744
+        ],
+        "page_idx": 3
+    },
+    {
+        "type": "equation",
+        "text": "\n$$\n\\nabla \\hat {f} _ {k} \\left(\\boldsymbol {w} _ {k, r} ^ {t + 1}; \\mathcal {B} _ {k, r}\\right) = \\frac {1}{\\left| \\mathcal {B} _ {k , r} \\right|} \\sum_ {\\xi_ {k} \\in \\mathcal {B} _ {k, r}} \\nabla \\hat {f} _ {k} \\left(\\boldsymbol {w} _ {k, r} ^ {t + 1}; \\xi_ {k}\\right). \\tag {12}\n$$\n",
+        "text_format": "latex",
+        "bbox": [
+            529,
+            748,
+            911,
+            786
+        ],
+        "page_idx": 3
+    },
+    {
+        "type": "text",
+        "text": "After  $R$  steps, the client transmits its new one-bit sketch  $\\pmb{z}_k^{t + 1} = \\mathrm{sign}(\\Phi \\pmb{w}_k^{t + 1})$  to the server. Upon receiving the sketches  $\\{\\pmb{z}_k^{t + 1}\\}_{k\\in S^t}$ , the server generates the next consensus vector  $\\pmb{v}^{t + 1}$ . As defined in Eq. (8), the server aims to solve:",
+        "bbox": [
+            514,
+            789,
+            913,
+            861
+        ],
+        "page_idx": 3
+    },
+    {
+        "type": "equation",
+        "text": "\n$$\n\\min  _ {\\boldsymbol {v} \\in \\{\\pm 1 \\} ^ {m}} \\sum_ {k \\in \\mathcal {S} ^ {t}} p _ {k} g (\\boldsymbol {v}, \\boldsymbol {z} _ {k} ^ {t + 1}). \\tag {13}\n$$\n",
+        "text_format": "latex",
+        "bbox": [
+            619,
+            859,
+            911,
+            891
+        ],
+        "page_idx": 3
+    },
+    {
+        "type": "text",
+        "text": "Crucially, this discrete optimization problem admits an exact, closed-form solution. The following lemma states that the optimal aggregation is a simple weighted majority vote.",
+        "bbox": [
+            81,
+            68,
+            478,
+            112
+        ],
+        "page_idx": 4
+    },
+    {
+        "type": "text",
+        "text": "Lemma 1 (Optimal Server Aggregation). The unique minimizer of the server objective in Eq. (13) is given by:",
+        "bbox": [
+            81,
+            114,
+            478,
+            143
+        ],
+        "page_idx": 4
+    },
+    {
+        "type": "equation",
+        "text": "\n$$\n\\boldsymbol {v} ^ {*} = \\operatorname {s i g n} \\left(\\sum_ {k \\in S ^ {t}} p _ {k} \\boldsymbol {z} _ {k} ^ {t + 1}\\right). \\tag {14}\n$$\n",
+        "text_format": "latex",
+        "bbox": [
+            186,
+            150,
+            478,
+            191
+        ],
+        "page_idx": 4
+    },
+    {
+        "type": "text",
+        "text": "This result is a straightforward but significant application of optimization principles, ensuring that our aggregation step (Line 8 in Algorithm 1) is not a heuristic but is guaranteed to be optimal given the information available to the server.",
+        "bbox": [
+            81,
+            199,
+            480,
+            268
+        ],
+        "page_idx": 4
+    },
+    {
+        "type": "text",
+        "text": "Efficient Projection via Fast Hadamard Transform",
+        "text_level": 1,
+        "bbox": [
+            83,
+            280,
+            473,
+            296
+        ],
+        "page_idx": 4
+    },
+    {
+        "type": "text",
+        "text": "A naive implementation of the projection  $\\Phi w$  using a dense Gaussian matrix requires  $\\mathcal{O}(mn)$  computation and memory, which causes a computational burden for large models ( $n \\gg 10^6$ ). To ensure scalability, we employ a structured projection based on the Subsampled Randomized Hadamard Transform (SRHT) (?), which reduces the complexity to  $\\mathcal{O}(n \\log n)$ .",
+        "bbox": [
+            81,
+            299,
+            478,
+            397
+        ],
+        "page_idx": 4
+    },
+    {
+        "type": "image",
+        "img_path": "images/c0afbf2282840cc6972f5442f38031fa2d6fdd132210410d38b4b3088f5471e1.jpg",
+        "image_caption": [
+            "(a)"
+        ],
+        "image_footnote": [],
+        "bbox": [
+            84,
+            407,
+            478,
+            494
+        ],
+        "page_idx": 4
+    },
+    {
+        "type": "image",
+        "img_path": "images/44541c300128107567b5e892d7e30a420876ae28068e786bbf1598b170e68256.jpg",
+        "image_caption": [
+            "(b)",
+            "Figure 2: Comparison between (a) a dense random projection and (b) our efficient structured projection. The structured projection sequentially applies element-wise random sign flips  $(D)$ , a Fast Hadamard Transform  $(H)$ , and random subsampling  $(S)$ ."
+        ],
+        "image_footnote": [],
+        "bbox": [
+            86,
+            521,
+            478,
+            739
+        ],
+        "page_idx": 4
+    },
+    {
+        "type": "text",
+        "text": "Forward Projection. The forward projection  $z = \\Phi w \\in \\mathbb{R}^m$  is computed through a sequence of efficient operations,",
+        "bbox": [
+            83,
+            859,
+            478,
+            888
+        ],
+        "page_idx": 4
+    },
+    {
+        "type": "text",
+        "text": "as illustrated in Figure 2 (b) (Up). Let  $n$  denote the model dimension and  $m \\ll n$  be the target dimension. First, the input vector  $\\boldsymbol{w} \\in \\mathbb{R}^n$  is zero-padded to the next power-of-two dimension,  $n' = 2^{\\lceil \\log_2 n \\rceil}$ . This can be represented as:",
+        "bbox": [
+            514,
+            68,
+            911,
+            127
+        ],
+        "page_idx": 4
+    },
+    {
+        "type": "equation",
+        "text": "\n$$\n\\tilde {\\boldsymbol {w}} = \\boldsymbol {P} _ {\\text {p a d}} (\\boldsymbol {w}) = \\left[ \\begin{array}{l} \\boldsymbol {w} \\\\ \\boldsymbol {0} \\end{array} \\right], \\tag {15}\n$$\n",
+        "text_format": "latex",
+        "bbox": [
+            635,
+            132,
+            911,
+            167
+        ],
+        "page_idx": 4
+    },
+    {
+        "type": "text",
+        "text": "where  $P_{\\mathrm{pad}}$  can be viewed as an  $n' \\times n$  matrix consisting of the identity matrix  $I_n$  stacked on top of an  $(n' - n) \\times n$  zero matrix, and  $\\tilde{\\boldsymbol{w}} \\in \\mathbb{R}^{n'}$ . This step ensures compatibility with the Fast Hadamard Transform (FHT), which requires input lengths that are powers of 2.",
+        "bbox": [
+            514,
+            175,
+            913,
+            250
+        ],
+        "page_idx": 4
+    },
+    {
+        "type": "text",
+        "text": "Then the structured random projection is performed as follows",
+        "bbox": [
+            516,
+            250,
+            911,
+            276
+        ],
+        "page_idx": 4
+    },
+    {
+        "type": "equation",
+        "text": "\n$$\n\\Phi \\boldsymbol {w} = S ^ {\\prime} H D \\tilde {\\boldsymbol {w}}, \\tag {16}\n$$\n",
+        "text_format": "latex",
+        "bbox": [
+            653,
+            277,
+            911,
+            292
+        ],
+        "page_idx": 4
+    },
+    {
+        "type": "text",
+        "text": "where  $D \\in \\mathbb{R}^{n' \\times n'}$  is a diagonal matrix where each diagonal entry  $D_{ii}$  is an independent random variable drawn uniformly from  $\\{-1, +1\\}$ ,  $H \\in \\mathbb{R}^{n' \\times n'}$  is the normalized Walsh-Hadamard matrix, and  $S' = \\sqrt{\\frac{n'}{m}} S \\in \\mathbb{R}^{m \\times n'}$ , where  $S$  is a subsampling matrix that uniformly selects  $m$  rows at random from the  $n'$ -dimensional identity matrix. This structured operator avoids forming any dense matrices. The total computational complexity is dominated by the FHT, resulting in an efficient  $\\mathcal{O}(n \\log n)$  computation.",
+        "bbox": [
+            514,
+            296,
+            911,
+            436
+        ],
+        "page_idx": 4
+    },
+    {
+        "type": "text",
+        "text": "Backward Computation. In the backward pass, we compute the adjoint projection  $\\Phi^{\\top} \\pmb{v}$ , where  $\\pmb{v} \\in \\mathbb{R}^{m}$  denotes a low-dimensional one-bit vector.",
+        "bbox": [
+            516,
+            444,
+            911,
+            484
+        ],
+        "page_idx": 4
+    },
+    {
+        "type": "text",
+        "text": "Specifically, we first lift  $\\pmb{v} \\in \\mathbb{R}^m$  to  $\\tilde{\\pmb{v}} \\in \\mathbb{R}^{n'}$  by zeropadding as follows",
+        "bbox": [
+            516,
+            484,
+            911,
+            513
+        ],
+        "page_idx": 4
+    },
+    {
+        "type": "equation",
+        "text": "\n$$\n\\tilde {\\boldsymbol {v}} = \\boldsymbol {S} ^ {\\prime \\top} \\boldsymbol {v}. \\tag {17}\n$$\n",
+        "text_format": "latex",
+        "bbox": [
+            674,
+            520,
+            911,
+            537
+        ],
+        "page_idx": 4
+    },
+    {
+        "type": "text",
+        "text": "This operation places the elements of  $\\boldsymbol{v}$  into the coordinates that were selected by  $S$ , filling the rest with zeros. We then apply the FHT to the padded vector, and apply the same random sign flips as in the forward pass as  $DH\\tilde{v}$ .",
+        "bbox": [
+            514,
+            544,
+            911,
+            601
+        ],
+        "page_idx": 4
+    },
+    {
+        "type": "text",
+        "text": "Finally, we truncate the resulting  $n^{\\prime}$  -dimensional vector back to the original dimensions. This is the action of  $\\pmb{P}_{\\mathrm{pad}}^{\\top}$ . The operator  $\\pmb{P}_{\\mathrm{pad}}^{\\top}:\\mathbb{R}^{n^{\\prime}}\\to \\mathbb{R}^{n}$  is a truncation operator, which we denote as  $\\pmb{P}_{\\mathrm{trunc}}$ . Its action is to select the first  $n$  coordinates of a vector in  $\\mathbb{R}^{n^{\\prime}}$  and discard the remaining  $n^{\\prime}-n$  coordinates.",
+        "bbox": [
+            514,
+            601,
+            911,
+            691
+        ],
+        "page_idx": 4
+    },
+    {
+        "type": "text",
+        "text": "The complete operation is formulated as",
+        "bbox": [
+            532,
+            691,
+            800,
+            705
+        ],
+        "page_idx": 4
+    },
+    {
+        "type": "equation",
+        "text": "\n$$\n\\boldsymbol {\\Phi} ^ {\\top} \\boldsymbol {v} = \\left(\\boldsymbol {S} ^ {\\prime} \\boldsymbol {H} \\boldsymbol {D} \\boldsymbol {P} _ {\\text {p a d}}\\right) ^ {\\top} \\boldsymbol {v} = \\boldsymbol {P} _ {\\text {p a d}} ^ {\\top} \\boldsymbol {D} ^ {\\top} \\boldsymbol {H} ^ {\\top} \\boldsymbol {S} ^ {\\prime \\top} \\boldsymbol {v}. \\tag {18}\n$$\n",
+        "text_format": "latex",
+        "bbox": [
+            532,
+            713,
+            911,
+            733
+        ],
+        "page_idx": 4
+    },
+    {
+        "type": "text",
+        "text": "Given that  $P_{\\mathrm{trunc}} = P_{\\mathrm{pad}}^{\\top}$  and  $D$  is diagonal, this simplifies to  $\\Phi^{\\top}v = P_{\\mathrm{trunc}}DH^{\\top}S^{\\prime \\top}v$ .",
+        "bbox": [
+            514,
+            739,
+            911,
+            772
+        ],
+        "page_idx": 4
+    },
+    {
+        "type": "text",
+        "text": "Similar to the forward projection, the adjoint projection is matrix-free and has a computational complexity of  $\\mathcal{O}(n\\log n)$ , making our algorithm practical and efficient.",
+        "bbox": [
+            516,
+            772,
+            913,
+            815
+        ],
+        "page_idx": 4
+    },
+    {
+        "type": "text",
+        "text": "Theoretical Analysis",
+        "text_level": 1,
+        "bbox": [
+            625,
+            827,
+            802,
+            844
+        ],
+        "page_idx": 4
+    },
+    {
+        "type": "text",
+        "text": "We provide a rigorous convergence guarantee for pFed1BS, showing that the algorithm converges to a neighborhood of a stationary point.",
+        "bbox": [
+            514,
+            845,
+            913,
+            888
+        ],
+        "page_idx": 4
+    },
+    {
+        "type": "text",
+        "text": "Assumptions and Preliminaries",
+        "text_level": 1,
+        "bbox": [
+            83,
+            68,
+            328,
+            83
+        ],
+        "page_idx": 5
+    },
+    {
+        "type": "text",
+        "text": "Our analysis relies on a set of standard assumptions common in FL literature.",
+        "bbox": [
+            81,
+            87,
+            478,
+            116
+        ],
+        "page_idx": 5
+    },
+    {
+        "type": "text",
+        "text": "Assumption 1 (L-smoothness). The local objective function  $f_{k}(\\cdot)$  is L-smooth, i.e., its gradient is L-Lipschitz continuous.",
+        "bbox": [
+            81,
+            119,
+            478,
+            162
+        ],
+        "page_idx": 5
+    },
+    {
+        "type": "text",
+        "text": "Assumption 2 (Bounded Below). The global potential function  $\\Psi(\\pmb{w}_1, \\ldots, \\pmb{w}_K; \\pmb{v}) = \\sum_{k=1}^{K} p_k \\tilde{F}_k(\\pmb{w}_k; \\pmb{v})$  is bounded below by some value  $F^*$ .",
+        "bbox": [
+            81,
+            167,
+            480,
+            214
+        ],
+        "page_idx": 5
+    },
+    {
+        "type": "text",
+        "text": "Assumption 3 (Bounded Gradient Variance). The variance of the stochastic gradients is uniformly bounded, i.e., for any client  $k$  and model  $\\mathbf{w}$ ,  $\\mathbb{E}_{\\mathcal{B}}\\left[\\| \\nabla \\hat{f}_k(\\mathbf{w};\\mathcal{B}) - \\nabla f_k(\\mathbf{w})\\|^2\\right] \\leq \\sigma^2$  for some constant  $\\sigma^2 \\geq 0$ .",
+        "bbox": [
+            81,
+            217,
+            478,
+            292
+        ],
+        "page_idx": 5
+    },
+    {
+        "type": "text",
+        "text": "Assumption 4 (Bounded Task Gradient Variance). The stochastic gradient of the task loss  $f_{k}$  has a bounded second moment, i.e., there exists a constant  $G > 0$  such that  $\\mathbb{E}_{\\mathcal{B}}\\left[\\| \\nabla \\hat{f}_k(\\boldsymbol {w};\\mathcal{B})\\|^2\\right]\\leq G^2$  for all  $\\boldsymbol{\\mathsf{w}}$  and  $k$",
+        "bbox": [
+            81,
+            296,
+            480,
+            369
+        ],
+        "page_idx": 5
+    },
+    {
+        "type": "text",
+        "text": "Our analysis of partial client participation also relies on the following standard lemmas.",
+        "bbox": [
+            81,
+            372,
+            478,
+            402
+        ],
+        "page_idx": 5
+    },
+    {
+        "type": "text",
+        "text": "Lemma 2 (Bounded Projection Norm). Let the projection matrix  $\\Phi \\in \\mathcal{R}^{m\\times n}$  be constructed as described in the \"Efficient Projection\" section, involving a normalized Hadamard matrix  $\\pmb{H}$ , a random sign matrix  $\\pmb{D}$ , and a subsampling matrix  $\\pmb{S}$ . The resulting operator has an exact spectral norm given by:",
+        "bbox": [
+            81,
+            406,
+            480,
+            489
+        ],
+        "page_idx": 5
+    },
+    {
+        "type": "equation",
+        "text": "\n$$\n\\left\\| \\Phi \\right\\| = \\sqrt {\\frac {n ^ {\\prime}}{m}}. \\tag {19}\n$$\n",
+        "text_format": "latex",
+        "bbox": [
+            233,
+            491,
+            478,
+            523
+        ],
+        "page_idx": 5
+    },
+    {
+        "type": "text",
+        "text": "For our analysis, we formally define  $C_{\\Phi} = \\|\\Phi\\|$ , where  $C_{\\Phi} = \\mathcal{O}\\left(\\sqrt{\\frac{n}{m}}\\right)$ .",
+        "bbox": [
+            83,
+            527,
+            478,
+            561
+        ],
+        "page_idx": 5
+    },
+    {
+        "type": "text",
+        "text": "Lemma 3 (Client-Side Objective and Gradient). The client-side objective  $\\tilde{F}_k$  for a given client  $k$  and server message  $\\mathbf{v}$  is defined as:",
+        "bbox": [
+            81,
+            563,
+            480,
+            608
+        ],
+        "page_idx": 5
+    },
+    {
+        "type": "equation",
+        "text": "\n$$\n\\begin{array}{l} \\tilde {F} _ {k} (\\boldsymbol {w} _ {k}; \\boldsymbol {v}) = f _ {k} (\\boldsymbol {w} _ {k}) + \\lambda \\left(h _ {\\gamma} \\left(\\boldsymbol {\\Phi} \\boldsymbol {w} _ {k}\\right) - \\langle \\boldsymbol {v}, \\boldsymbol {\\Phi} \\boldsymbol {w} _ {k} \\rangle\\right) \\\\ + \\frac {\\mu}{2} \\| \\boldsymbol {w} _ {k} \\| _ {2} ^ {2}, \\tag {20} \\\\ \\end{array}\n$$\n",
+        "text_format": "latex",
+        "bbox": [
+            109,
+            614,
+            478,
+            662
+        ],
+        "page_idx": 5
+    },
+    {
+        "type": "text",
+        "text": "where  $h_{\\gamma}(z) = \\frac{1}{\\gamma}\\sum_{i=1}^{m}\\log(\\cosh(\\gamma z_i))$  is a differentiable surrogate for the  $\\ell_1$ -norm. The objective  $\\tilde{F}_k(\\boldsymbol{w}_k)$  is differentiable with respect to  $\\boldsymbol{w}_k$ , and its gradient is given by:",
+        "bbox": [
+            81,
+            669,
+            480,
+            720
+        ],
+        "page_idx": 5
+    },
+    {
+        "type": "equation",
+        "text": "\n$$\n\\begin{array}{l} \\nabla \\tilde {F} _ {k} (\\boldsymbol {w} _ {k}; \\boldsymbol {v}) = \\nabla f _ {k} (\\boldsymbol {w} _ {k}) + \\lambda \\boldsymbol {\\Phi} ^ {\\top} [ \\tanh  (\\gamma \\boldsymbol {\\Phi} \\boldsymbol {w} _ {k}) - \\boldsymbol {v} ] \\\\ + \\mu \\boldsymbol {w} _ {k}. \\tag {21} \\\\ \\end{array}\n$$\n",
+        "text_format": "latex",
+        "bbox": [
+            102,
+            726,
+            478,
+            761
+        ],
+        "page_idx": 5
+    },
+    {
+        "type": "text",
+        "text": "Lemma 4 (Smoothness of Client Objective). Under Assumptions 1 and 1, the client-side objective  $\\tilde{F}_k(\\boldsymbol{w}_k; \\boldsymbol{v})$  is  $L_F$ -smooth with respect to  $\\boldsymbol{w}_k$  with high probability, where the smoothness constant is given by:",
+        "bbox": [
+            81,
+            768,
+            478,
+            828
+        ],
+        "page_idx": 5
+    },
+    {
+        "type": "equation",
+        "text": "\n$$\nL _ {F} = L + \\lambda \\gamma C _ {\\Phi} ^ {2} + \\mu . \\tag {22}\n$$\n",
+        "text_format": "latex",
+        "bbox": [
+            202,
+            835,
+            478,
+            852
+        ],
+        "page_idx": 5
+    },
+    {
+        "type": "text",
+        "text": "Lemma 5 (Bounded Model Norm). Let Assumption 1-4 hold. For a learning rate  $\\eta$  satisfying  $\\eta < \\frac{1}{3\\mu}$ , the expected",
+        "bbox": [
+            81,
+            859,
+            480,
+            892
+        ],
+        "page_idx": 5
+    },
+    {
+        "type": "text",
+        "text": "squared norm of the client weights is uniformly bounded across all rounds  $t$  with high probability:",
+        "bbox": [
+            514,
+            69,
+            913,
+            98
+        ],
+        "page_idx": 5
+    },
+    {
+        "type": "equation",
+        "text": "\n$$\n\\mathbb {E} \\left[ \\| \\boldsymbol {w} _ {k} ^ {t} \\| _ {2} ^ {2} \\right] \\leq W ^ {2}, \\quad \\forall t \\geq 0, \\tag {23}\n$$\n",
+        "text_format": "latex",
+        "bbox": [
+            619,
+            102,
+            911,
+            119
+        ],
+        "page_idx": 5
+    },
+    {
+        "type": "text",
+        "text": "where the bound  $W$  is defined as",
+        "bbox": [
+            516,
+            126,
+            740,
+            140
+        ],
+        "page_idx": 5
+    },
+    {
+        "type": "equation",
+        "text": "\n$$\nW ^ {2} \\triangleq \\max  \\left(\\| \\boldsymbol {w} _ {k} ^ {0} \\| _ {2} ^ {2}, \\frac {C ^ {\\prime}}{(1 - \\alpha) (1 - \\alpha^ {R})}\\right) \\tag {24}\n$$\n",
+        "text_format": "latex",
+        "bbox": [
+            575,
+            147,
+            911,
+            181
+        ],
+        "page_idx": 5
+    },
+    {
+        "type": "text",
+        "text": "with constants  $\\alpha = 1 - \\eta \\mu (1 - 3\\eta \\mu)$  and  $C^\\prime$  given by:",
+        "bbox": [
+            516,
+            186,
+            880,
+            203
+        ],
+        "page_idx": 5
+    },
+    {
+        "type": "equation",
+        "text": "\n$$\nC ^ {\\prime} \\triangleq \\left(\\frac {\\eta}{\\mu} + 3 \\eta^ {2}\\right) G ^ {2} + 3 \\eta^ {2} \\lambda^ {2} \\left(2 C _ {\\Phi} \\sqrt {m}\\right) ^ {2}. \\tag {25}\n$$\n",
+        "text_format": "latex",
+        "bbox": [
+            553,
+            209,
+            911,
+            242
+        ],
+        "page_idx": 5
+    },
+    {
+        "type": "text",
+        "text": "Lemma 6 (Variance of Client Sampling). Let  $\\{z_k^t\\}_{k=1}^K$  be the set of client sketches at round  $t$ . If a subset  $S^t$  of size  $S$  is sampled uniformly at random without replacement, then the variance of the sample mean is bounded by:",
+        "bbox": [
+            514,
+            248,
+            913,
+            306
+        ],
+        "page_idx": 5
+    },
+    {
+        "type": "equation",
+        "text": "\n$$\n\\mathbb {E} _ {\\mathcal {S} ^ {t}} \\left[ \\left\\| \\frac {1}{S} \\sum_ {k \\in \\mathcal {S} ^ {t}} z _ {k} - \\bar {z} ^ {t} \\right\\| _ {2} ^ {2} \\right] \\leq \\frac {K - S}{S K (K - 1)} \\left\\| z _ {k} - \\bar {z} ^ {t} \\right\\| _ {2} ^ {2}, \\tag {26}\n$$\n",
+        "text_format": "latex",
+        "bbox": [
+            517,
+            311,
+            911,
+            366
+        ],
+        "page_idx": 5
+    },
+    {
+        "type": "text",
+        "text": "where  $\\bar{z}^t\\triangleq \\frac{1}{K}\\sum_{k = 1}^{K}z_k^t$",
+        "bbox": [
+            517,
+            366,
+            684,
+            385
+        ],
+        "page_idx": 5
+    },
+    {
+        "type": "text",
+        "text": "Lemma 7 (Client-Side Objective Descent). After  $R$  local steps of subgradient descent with learning rate  $\\eta$  on the smoothed objective  $\\tilde{F}_k(\\cdot ;\\pmb {v}^t)$ , starting from  $\\pmb{w}_{k,0}^{t + 1} = \\pmb{w}_k^t$ , we have",
+        "bbox": [
+            514,
+            386,
+            913,
+            445
+        ],
+        "page_idx": 5
+    },
+    {
+        "type": "equation",
+        "text": "\n$$\n\\begin{array}{l} \\mathbb {E} \\left[ \\tilde {F} _ {k} \\left(\\boldsymbol {w} _ {k, R} ^ {t + 1}; \\boldsymbol {v} ^ {t}\\right) \\right] \\leq \\tilde {F} _ {k} \\left(\\boldsymbol {w} _ {k} ^ {t}; \\boldsymbol {v} ^ {t}\\right) + \\frac {\\eta^ {2} R L _ {F} \\sigma^ {2}}{2} \\\\ \\left. - \\eta R \\left(1 - \\frac {\\eta L _ {F}}{2}\\right) \\cdot \\frac {1}{R} \\sum_ {r = 0} ^ {R - 1} \\left\\| \\nabla \\tilde {F} _ {k} \\left(\\boldsymbol {w} _ {k, r} ^ {t + 1}; \\boldsymbol {v} ^ {t}\\right) \\right\\| _ {2} ^ {2}. \\right. \\tag {27} \\\\ \\end{array}\n$$\n",
+        "text_format": "latex",
+        "bbox": [
+            524,
+            449,
+            911,
+            523
+        ],
+        "page_idx": 5
+    },
+    {
+        "type": "text",
+        "text": "Main Convergence Result",
+        "text_level": 1,
+        "bbox": [
+            516,
+            532,
+            718,
+            549
+        ],
+        "page_idx": 5
+    },
+    {
+        "type": "text",
+        "text": "Our proof relies on several key intermediate results (proofs in the Appendix). These are combined to analyze the evolution of a global potential function:",
+        "bbox": [
+            514,
+            551,
+            913,
+            594
+        ],
+        "page_idx": 5
+    },
+    {
+        "type": "equation",
+        "text": "\n$$\n\\Psi^ {t} \\triangleq \\sum_ {k = 1} ^ {K} p _ {k} \\tilde {F} _ {k} \\left(\\boldsymbol {w} _ {k} ^ {t}; \\boldsymbol {v} ^ {t}\\right). \\tag {28}\n$$\n",
+        "text_format": "latex",
+        "bbox": [
+            630,
+            601,
+            911,
+            642
+        ],
+        "page_idx": 5
+    },
+    {
+        "type": "text",
+        "text": "Our main result bounds the time-averaged expected squared norm of the local gradients.",
+        "bbox": [
+            514,
+            648,
+            913,
+            678
+        ],
+        "page_idx": 5
+    },
+    {
+        "type": "text",
+        "text": "Theorem 1 (Local Convergence). Under standard assumptions for federated learning analysis (detailed in the Appendix), if the learning rate satisfies  $\\eta \\leq \\frac{1}{L_F}$ , after  $T$  communication rounds with partial client participation, Algorithm 1 guarantees the following convergence",
+        "bbox": [
+            514,
+            681,
+            913,
+            753
+        ],
+        "page_idx": 5
+    },
+    {
+        "type": "equation",
+        "text": "\n$$\n\\begin{array}{l} \\frac {1}{T} \\sum_ {t = 0} ^ {T - 1} \\frac {1}{R} \\sum_ {r = 0} ^ {R - 1} \\mathbb {E} \\left[ \\sum_ {k = 1} ^ {K} p _ {k} \\| \\nabla \\tilde {F} _ {k} (\\boldsymbol {w} _ {k, r} ^ {t + 1}; \\boldsymbol {v} ^ {t}) \\| _ {2} ^ {2} \\right] \\\\ \\leq \\frac {\\Psi^ {0} - F ^ {*}}{c _ {1} T} + \\frac {\\eta^ {2} R L _ {F} \\sigma^ {2}}{2 c _ {1}} + \\frac {\\Delta_ {\\operatorname* {m a x}}}{c _ {1}} + \\frac {\\lambda E _ {S}}{c _ {1}}, \\tag {29} \\\\ \\end{array}\n$$\n",
+        "text_format": "latex",
+        "bbox": [
+            532,
+            762,
+            911,
+            840
+        ],
+        "page_idx": 5
+    },
+    {
+        "type": "text",
+        "text": "with high probability, where  $c_{1} = \\eta R(1 - \\eta L_{F} / 2)$ . The term  $\\Psi^{0}$  is the initial value of the potential function in (28),  $F^{*}$  is its lower bound,  $L_{F} = L + \\lambda \\gamma C_{\\Phi}^{2} + \\mu$  is the smoothness",
+        "bbox": [
+            516,
+            845,
+            913,
+            890
+        ],
+        "page_idx": 5
+    },
+    {
+        "type": "text",
+        "text": "constant of the client objective,  $\\Delta_{\\mathrm{max}} = 2\\lambda (\\sqrt{m} WC_{\\Phi} + m)$  bounds the error from the one-bit server update, and  $E_{S}$  bounds the error from client sampling, defined as",
+        "bbox": [
+            81,
+            68,
+            478,
+            112
+        ],
+        "page_idx": 6
+    },
+    {
+        "type": "equation",
+        "text": "\n$$\nE _ {S} = \\frac {2 \\sqrt {m}}{T} \\sum_ {t = 0} ^ {T - 1} \\sqrt {\\frac {K - S}{S K (K - 1)} \\sum_ {k = 1} ^ {K} \\left\\| \\boldsymbol {z} _ {k} ^ {t + 1} - \\bar {\\boldsymbol {z}} ^ {t + 1} \\right\\| _ {2} ^ {2}}. \\tag {30}\n$$\n",
+        "text_format": "latex",
+        "bbox": [
+            98,
+            116,
+            478,
+            176
+        ],
+        "page_idx": 6
+    },
+    {
+        "type": "text",
+        "text": "Remark 1. Theorem 1 shows that as  $T$  grows, the average squared gradient norm converges to a neighborhood of zero at an  $\\mathcal{O}(1 / (RT))$  rate, which means that the algorithm converges to a stationary point of the global potential function. The neighborhood (convergence error) of pFed1BS is governed by stochastic noise  $\\mathcal{O}(\\eta L_F\\sigma^2)$ , communication error  $\\mathcal{O}(\\Delta_{\\max} / (\\eta R))$  and client sampling error  $\\mathcal{O}(\\lambda E_S / (\\eta R))$ . To bound the convergence error, the regularization parameter  $\\lambda$  must satisfy  $\\lambda = \\mathcal{O}(1/n)$ , which simultaneously controls  $L_F$ ,  $\\Delta_{\\max}$  and  $E_S$ .",
+        "bbox": [
+            81,
+            179,
+            478,
+            319
+        ],
+        "page_idx": 6
+    },
+    {
+        "type": "text",
+        "text": "Remark 2. Note that the client sampling error  $E_S$  vanishes when  $S = K$ , i.e., full client participation. In this case, our convergence bound recovers the result for the full participation setting.",
+        "bbox": [
+            81,
+            321,
+            480,
+            378
+        ],
+        "page_idx": 6
+    },
+    {
+        "type": "text",
+        "text": "Experiments",
+        "text_level": 1,
+        "bbox": [
+            225,
+            388,
+            339,
+            407
+        ],
+        "page_idx": 6
+    },
+    {
+        "type": "text",
+        "text": "We empirically evaluate pFed1BS against state-of-the-art baselines on several benchmarks under challenging non-i.i.d. conditions.",
+        "bbox": [
+            81,
+            407,
+            480,
+            450
+        ],
+        "page_idx": 6
+    },
+    {
+        "type": "text",
+        "text": "Experimental Setup",
+        "text_level": 1,
+        "bbox": [
+            83,
+            460,
+            241,
+            477
+        ],
+        "page_idx": 6
+    },
+    {
+        "type": "text",
+        "text": "Datasets and Models: Our experiments use standard image classification benchmarks: MNIST, FMNIST, CIFAR-10, CIFAR-100, and SVHN. To further assess generalizability, we also include experiments on SVHN. We use a two-layer MLP for MNIST and FMNIST, and VGG architectures for the other datasets. We simulate a highly non-i.i.d. environment by partitioning data among 20 clients based on labels.",
+        "bbox": [
+            81,
+            479,
+            478,
+            589
+        ],
+        "page_idx": 6
+    },
+    {
+        "type": "text",
+        "text": "Baselines: We compare pFed1BS against FedAvg and several one-bit CEFL methods: OBDA, OBCSAA, and zSignFed. To provide a comprehensive evaluation, we also include state-of-the-art PFL and communication-efficient baselines: EDEN (?) and FedBAT(?).",
+        "bbox": [
+            81,
+            589,
+            480,
+            659
+        ],
+        "page_idx": 6
+    },
+    {
+        "type": "text",
+        "text": "Implementation Details: We run experiments for 100-300 communication rounds with multiple local epochs. Key hyperparameters were set via a grid search to  $\\lambda = 0.0005$ ,  $\\mu = 0.00001$ , and  $\\gamma = 10000$ . The compression ratio is fixed at  $m/n = 0.1$ . All experiments are implemented in PyTorch and run on an NVIDIA RTX 3090 Ti GPU, with results averaged over 10 independent runs.",
+        "bbox": [
+            81,
+            659,
+            480,
+            757
+        ],
+        "page_idx": 6
+    },
+    {
+        "type": "text",
+        "text": "Evaluation Metrics",
+        "text_level": 1,
+        "bbox": [
+            83,
+            767,
+            235,
+            781
+        ],
+        "page_idx": 6
+    },
+    {
+        "type": "text",
+        "text": "We use the following metrics for evaluation:",
+        "bbox": [
+            83,
+            784,
+            379,
+            799
+        ],
+        "page_idx": 6
+    },
+    {
+        "type": "list",
+        "sub_type": "text",
+        "list_items": [
+            "- Top-1 Accuracy: We report the average Top-1 test accuracy on the held-out test set, aggregated across all clients' personalized models.",
+            "- Communication Cost: We define the per-round communication cost as the total number of bits transmitted between the server and all participating clients in a single"
+        ],
+        "bbox": [
+            89,
+            801,
+            478,
+            888
+        ],
+        "page_idx": 6
+    },
+    {
+        "type": "text",
+        "text": "round. For pFed1BS, this is the sum of all uplink one-bit sketches (size  $m$ ) and the downlink one-bit consensus vector (size  $m$ ).",
+        "bbox": [
+            535,
+            68,
+            913,
+            111
+        ],
+        "page_idx": 6
+    },
+    {
+        "type": "text",
+        "text": "Main Results",
+        "text_level": 1,
+        "bbox": [
+            516,
+            121,
+            624,
+            135
+        ],
+        "page_idx": 6
+    },
+    {
+        "type": "text",
+        "text": "Table 2 presents the final test accuracy and per-round communication cost. pFed1BS establishes a new state-of-the-art for communication-constrained FL. On all datasets, it achieves accuracy that is highly competitive with or superior to all baselines, including full-precision FedAvg and advanced communication-efficient methods like OBDA, while reducing communication costs by over  $96\\%$ . For instance, on CIFAR-10, pFed1BS achieves  $85.21\\%$  accuracy with only  $0.13\\mathrm{MB}$  per round, whereas OBDA requires  $1.34\\mathrm{MB}$  for a similar  $73.26\\%$  accuracy.",
+        "bbox": [
+            514,
+            138,
+            913,
+            280
+        ],
+        "page_idx": 6
+    },
+    {
+        "type": "image",
+        "img_path": "images/8020c14f24d96df9e280d607a29400951a1617d9f30bdbffda7dcfd655ff0ae1.jpg",
+        "image_caption": [
+            "Figure 3: Test accuracy on MNIST (non-i.i.d.). pFed1BS achieves both faster convergence and higher final accuracy."
+        ],
+        "image_footnote": [],
+        "bbox": [
+            539,
+            291,
+            890,
+            436
+        ],
+        "page_idx": 6
+    },
+    {
+        "type": "image",
+        "img_path": "images/dbb2f982c1b5b07ef6550cfe7e7e015c4a9fc956622c39e452e6b5586c4326fd.jpg",
+        "image_caption": [
+            "Figure 4: Average training loss on MNIST (non-i.i.d.). pFed1BS exhibits significantly faster convergence to a lower loss value and maintains stable behavior throughout the training process."
+        ],
+        "image_footnote": [],
+        "bbox": [
+            539,
+            503,
+            890,
+            648
+        ],
+        "page_idx": 6
+    },
+    {
+        "type": "text",
+        "text": "On more challenging datasets like CIFAR-100, the advantage is even more pronounced: one-bit baselines suffer a performance collapse, while pFed1BS maintains high accuracy, demonstrating the critical role of personalization in enabling extreme compression. The convergence plots in Figures 3 and 4 further show that pFed1BS achieves faster convergence to a better and more stable solution.",
+        "bbox": [
+            514,
+            731,
+            913,
+            829
+        ],
+        "page_idx": 6
+    },
+    {
+        "type": "text",
+        "text": "Conclusion",
+        "text_level": 1,
+        "bbox": [
+            665,
+            840,
+            764,
+            856
+        ],
+        "page_idx": 6
+    },
+    {
+        "type": "text",
+        "text": "In this work, we proposed pFed1BS, a novel personalized federated learning framework that successfully reconciles",
+        "bbox": [
+            516,
+            859,
+            913,
+            888
+        ],
+        "page_idx": 6
+    },
+    {
+        "type": "table",
+        "img_path": "images/76fc59581ba2fe2c384ac75651610b36d0d00a3ec8d3476343965b9eb6a6a4da.jpg",
+        "table_caption": [],
+        "table_footnote": [],
+        "table_body": "<table><tr><td rowspan=\"2\">Method</td><td colspan=\"2\">MNIST</td><td colspan=\"2\">FMNIST</td><td colspan=\"2\">CIFAR-10</td><td colspan=\"2\">CIFAR-100</td><td colspan=\"2\">SVHN</td></tr><tr><td>Acc. (%)</td><td>Cost (MB)</td><td>Acc. (%)</td><td>Cost (MB)</td><td>Acc. (%)</td><td>Cost (MB)</td><td>Acc. (%)</td><td>Cost (MB)</td><td>Acc. (%)</td><td>Cost (MB)</td></tr><tr><td>FedAvg</td><td>97.21 ± 0.48</td><td>31.06</td><td>84.40 ± 0.09</td><td>31.06</td><td>87.78 ± 1.45</td><td>42.85</td><td>59.60 ± 0.66</td><td>2335.85</td><td>96.33 ± 0.28</td><td>42.85</td></tr><tr><td>OBDA</td><td>92.54 ± 0.32</td><td>0.97↓96.88%</td><td>78.51 ± 0.62</td><td>0.97↓96.88%</td><td>73.26 ± 5.39</td><td>1.34↓96.88%</td><td>42.47 ± 2.02</td><td>72.95↓96.88%</td><td>84.32 ± 1.15</td><td>1.34↓96.88%</td></tr><tr><td>OBCSAA</td><td>92.20 ± 0.20</td><td>15.58↓49.84%</td><td>80.13 ± 0.45</td><td>15.58↓49.84%</td><td>83.57 ± 0.14</td><td>21.49↓49.84%</td><td>48.99 ± 0.54</td><td>1171.57↓49.84%</td><td>87.10 ± 0.65</td><td>21.49↓49.84%</td></tr><tr><td>zSignFed</td><td>94.83 ± 0.07</td><td>16.01↓48.45%</td><td>82.55 ± 0.28</td><td>16.01↓48.45%</td><td>67.60 ± 3.46</td><td>22.04↓48.56%</td><td>40.17 ± 2.32</td><td>1203.78↓48.45%</td><td>85.33 ± 1.05</td><td>22.04↓48.56%</td></tr><tr><td>EDEN</td><td>96.50 ± 0.35</td><td>12.15↓60.88%</td><td>83.85 ± 0.30</td><td>12.15↓60.88%</td><td>84.91 ± 0.53</td><td>22.76↓46.88%</td><td>47.55 ± 1.12</td><td>1205.33↓48.39%</td><td>89.01 ± 0.48</td><td>22.76↓46.88%</td></tr><tr><td>FedBAT</td><td>96.42 ± 0.41</td><td>11.88↓61.75%</td><td>83.70 ± 0.35</td><td>11.88↓61.75%</td><td>81.20 ± 0.95</td><td>22.04↓48.56%</td><td>46.89 ± 1.25</td><td>1198.71↓48.68%</td><td>88.89 ± 0.51</td><td>22.04↓48.56%</td></tr><tr><td>pFed1BS</td><td>97.83 ± 0.02</td><td>0.10↓99.68%</td><td>84.15 ± 0.21</td><td>0.10↓99.68%</td><td>85.21 ± 0.34</td><td>0.13↓99.69%</td><td>52.88 ± 0.32</td><td>7.30↓99.69%</td><td>95.07 ± 0.21</td><td>0.13↓99.69%</td></tr></table>",
+        "bbox": [
+            84,
+            66,
+            911,
+            212
+        ],
+        "page_idx": 7
+    },
+    {
+        "type": "text",
+        "text": "Table 2: Top-1 accuracy (%) and one-round communication cost (MB) of FL algorithms on various datasets under a Non-IID setting. Best results in each column are highlighted in bold. The row for our proposed method, pFed1BS, is highlighted with a gray background for emphasis.",
+        "bbox": [
+            81,
+            220,
+            913,
+            265
+        ],
+        "page_idx": 7
+    },
+    {
+        "type": "text",
+        "text": "the dual challenges of extreme communication compression and data heterogeneity. By integrating a bidirectional one-bit sketching mechanism with a principled sign-based regularizer, our method reduces communication costs by over  $99\\%$  while simultaneously achieving state-of-the-art accuracy. Crucially, pFed1BS achieves this extreme compression with only a minimal trade-off in model accuracy compared to full-precision methods, while decisively outperforming other one-bit baselines that suffer a significant performance collapse in non-i.i.d. settings. Our work demonstrates that a carefully designed personalization strategy is the key to making extreme compression schemes viable, preventing catastrophic performance loss and establishing a new, practical frontier for deploying powerful federated models in real-world, resource-constrained environments.",
+        "bbox": [
+            81,
+            291,
+            478,
+            500
+        ],
+        "page_idx": 7
+    },
+    {
+        "type": "text",
+        "text": "Appendix",
+        "text_level": 1,
+        "bbox": [
+            236,
+            518,
+            326,
+            536
+        ],
+        "page_idx": 7
+    },
+    {
+        "type": "text",
+        "text": "In this appendix, we provide the proofs for the theorems and lemmas in the main paper, as well as additional experimental settings and results that further validate our proposed framework, pFed1BS.",
+        "bbox": [
+            81,
+            542,
+            480,
+            599
+        ],
+        "page_idx": 7
+    },
+    {
+        "type": "text",
+        "text": "Appendix Contents:",
+        "text_level": 1,
+        "bbox": [
+            83,
+            609,
+            227,
+            626
+        ],
+        "page_idx": 7
+    },
+    {
+        "type": "text",
+        "text": "- A. Additional Experimental Results: We present ablation studies on the MNIST and CIFAR-10 datasets to analyze the impact of key components and hyperparameters of pFed1BS.",
+        "bbox": [
+            89,
+            633,
+            478,
+            689
+        ],
+        "page_idx": 7
+    },
+    {
+        "type": "list",
+        "sub_type": "text",
+        "list_items": [
+            "- A.1. Effect of the Number of Participating Clients  $(S)$",
+            "- A.2. Effect of the Number of Local Epochs  $(R)$",
+            "- A.3. Performance with the Fast Hadamard Transform (FHT)",
+            "- A.4. Hyperparameter Sensitivity Analysis"
+        ],
+        "bbox": [
+            102,
+            696,
+            477,
+            780
+        ],
+        "page_idx": 7
+    },
+    {
+        "type": "text",
+        "text": "- B. Theoretical Analysis and Proofs: We provide detailed proofs for all lemmas and the main convergence theorem.",
+        "bbox": [
+            91,
+            787,
+            478,
+            829
+        ],
+        "page_idx": 7
+    },
+    {
+        "type": "list",
+        "sub_type": "text",
+        "list_items": [
+            "- B.1. Assumptions",
+            "- B.2. Supporting Lemmas and Proofs",
+            "- B.3. Main Convergence Proof (Theorem 1)"
+        ],
+        "bbox": [
+            102,
+            838,
+            405,
+            888
+        ],
+        "page_idx": 7
+    },
+    {
+        "type": "text",
+        "text": "A. Additional Experimental Results",
+        "text_level": 1,
+        "bbox": [
+            516,
+            290,
+            795,
+            306
+        ],
+        "page_idx": 7
+    },
+    {
+        "type": "text",
+        "text": "We conduct further analysis on the MNIST dataset under the non-i.i.d. setting to investigate the impact of our method's key components and hyperparameters.",
+        "bbox": [
+            514,
+            309,
+            913,
+            353
+        ],
+        "page_idx": 7
+    },
+    {
+        "type": "text",
+        "text": "A.1 Effect of the Number of Participating Clients  $(S)$ . To understand how the degree of client participation affects performance, we vary the number of clients  $(S)$  sampled in each communication round, from sparse participation to full participation  $(S = 20)$ . As shown in Figure 1, model performance improves directly with the number of participating clients. A larger  $S$  provides the server with a more accurate and stable estimate of the global consensus, leading to faster convergence and higher final accuracy. Even with a small fraction of participating clients (e.g.,  $S = 5$ ), pFed1BS maintains robust performance, demonstrating its efficacy in settings with limited client availability.",
+        "bbox": [
+            514,
+            359,
+            913,
+            527
+        ],
+        "page_idx": 7
+    },
+    {
+        "type": "text",
+        "text": "A.2. Effect of Local Epochs  $(R)$ . The number of local epochs,  $R$ , determines the amount of computation each client performs between communication rounds. We evaluate the impact of varying  $R$  from 5 to 30. As shown in Figure 2, increasing the amount of local work generally accelerates convergence in terms of communication rounds. For instance, increasing  $R$  from 5 to 20 leads to a noticeable improvement in convergence speed. However, this benefit saturates quickly; performance for  $R = 20$  is nearly identical. This suggests that while sufficient local training is beneficial, excessive local updates provide diminishing returns and may not be the most efficient use of computational resources, making  $R = 20$  or  $R = 25$  a practical choice for this task.",
+        "bbox": [
+            514,
+            532,
+            913,
+            728
+        ],
+        "page_idx": 7
+    },
+    {
+        "type": "text",
+        "text": "A.3. Performance with the Fast Hadamard Transform (FHT). A key claim of our work is that the computational efficiency gained by using a structured projection (FHT) does not come at the cost of model performance. To validate this, we compared our FHT-based implementation against a baseline using a dense Gaussian projection matrix. The results in Figure 3 are decisive. The accuracy and loss curves for both methods are nearly identical throughout the training process. This empirically confirms that our use of FHT provides its significant computational advantages (from  $(O)(mn)$  to  $(O)(n\\log n)$ ) with no discernible",
+        "bbox": [
+            514,
+            734,
+            913,
+            890
+        ],
+        "page_idx": 7
+    },
+    {
+        "type": "image",
+        "img_path": "images/e6b28c1b8fb64611eb589258e9e43042bad5d08db88b5238566e7a2aceafd214.jpg",
+        "image_caption": [],
+        "image_footnote": [],
+        "bbox": [
+            124,
+            65,
+            441,
+            195
+        ],
+        "page_idx": 8
+    },
+    {
+        "type": "image",
+        "img_path": "images/7c41e62eac9564717ac6ef072a3523c7c9b1d9f70258f19d5ce776ea0575ff3c.jpg",
+        "image_caption": [
+            "(a) Test accuracy v.s. communication rounds.",
+            "(b) Average training loss v.s. communication rounds.",
+            "Figure 1: Performance of pFed1BS with a varying number of participating clients  $(S)$  on MNIST."
+        ],
+        "image_footnote": [],
+        "bbox": [
+            124,
+            215,
+            436,
+            344
+        ],
+        "page_idx": 8
+    },
+    {
+        "type": "text",
+        "text": "impact on convergence or final model quality, making it a critical component for the scalability of pFed1BS.",
+        "bbox": [
+            81,
+            441,
+            478,
+            472
+        ],
+        "page_idx": 8
+    },
+    {
+        "type": "text",
+        "text": "A.4. Hyperparameter Sensitivity Analysis. To validate the robustness of pFed1BS, we conduct a comprehensive sensitivity analysis of its key hyperparameters on the CIFAR-10 dataset under non-i.i.d. conditions. The results are presented in Table 1.",
+        "bbox": [
+            81,
+            477,
+            478,
+            546
+        ],
+        "page_idx": 8
+    },
+    {
+        "type": "text",
+        "text": "The analysis demonstrates that pFed1BS is remarkably robust to the precise settings of its key hyperparameters. For instance, the sign-alignment parameter  $\\lambda$  can be varied across six orders of magnitude with a performance fluctuation of less than  $0.4\\%$ . Similarly, the model performs consistently well for the  $\\ell_2$  penalty  $\\mu$  and the smoothing parameter  $\\gamma$  across very wide ranges, with performance degrading only at extreme values. This stability reduces the burden of meticulous hyperparameter tuning, making our method more practical for real-world deployment. These results confirm that our sign-based regularizer and  $\\ell_2$  penalty are essential components that contribute to the final performance without introducing fragility.",
+        "bbox": [
+            81,
+            547,
+            480,
+            728
+        ],
+        "page_idx": 8
+    },
+    {
+        "type": "text",
+        "text": "B. Theoretical Analysis and Proofs",
+        "text_level": 1,
+        "bbox": [
+            83,
+            738,
+            352,
+            753
+        ],
+        "page_idx": 8
+    },
+    {
+        "type": "text",
+        "text": "In this subsection, we provide the detailed theoretical analysis for our proposed Algorithm 1, including all supporting lemmas and the full proof for our main convergence result, Theorem 1, which is stated in the main paper.",
+        "bbox": [
+            81,
+            755,
+            478,
+            813
+        ],
+        "page_idx": 8
+    },
+    {
+        "type": "text",
+        "text": "B.1. Assumptions. Our analysis relies on the following assumptions. Assumption 1 and Assumption 2 are standard assumptions in the analysis of large-scale optimization and federated learning (?). Assumptions 3 (????) and 4 (??) are widely used in FL context.",
+        "bbox": [
+            81,
+            818,
+            480,
+            888
+        ],
+        "page_idx": 8
+    },
+    {
+        "type": "image",
+        "img_path": "images/b94ca148c1e3733cebb1109b4d9cafa679e1fd096d9b78160c074e640e3a19ea.jpg",
+        "image_caption": [],
+        "image_footnote": [],
+        "bbox": [
+            557,
+            65,
+            870,
+            195
+        ],
+        "page_idx": 8
+    },
+    {
+        "type": "image",
+        "img_path": "images/cf58a19493e8a40790e280d3b2ccb522f9b90ab004ec3be3468948ca9e836b92.jpg",
+        "image_caption": [
+            "(a) Test accuracy v.s. communication rounds.",
+            "(b) Average training loss  $\\nu .s.$  communication rounds.",
+            "Figure 2: Effect of the number of local epochs  $(R)$  on MNIST."
+        ],
+        "image_footnote": [],
+        "bbox": [
+            558,
+            215,
+            870,
+            344
+        ],
+        "page_idx": 8
+    },
+    {
+        "type": "text",
+        "text": "Assumption 1 (L-smoothness). The local objective function  $f_{k}(\\cdot)$  is differentiable and  $L$ -smooth for all clients  $k \\in 1, \\ldots, K$ , i.e., for any  $\\mathbf{w}_{1}, \\mathbf{w}_{2} \\in \\mathbb{R}^{n}$ , there exists a constant  $L > 0$  such that",
+        "bbox": [
+            514,
+            444,
+            913,
+            501
+        ],
+        "page_idx": 8
+    },
+    {
+        "type": "equation",
+        "text": "\n$$\n\\left\\| \\nabla f _ {k} \\left(\\boldsymbol {w} _ {1}\\right) - \\nabla f _ {k} \\left(\\boldsymbol {w} _ {2}\\right) \\right\\| \\leq L \\| \\boldsymbol {w} _ {1} - \\boldsymbol {w} _ {2} \\|. \\tag {1}\n$$\n",
+        "text_format": "latex",
+        "bbox": [
+            573,
+            508,
+            911,
+            526
+        ],
+        "page_idx": 8
+    },
+    {
+        "type": "text",
+        "text": "Assumption 2 (Bounded Below). The global potential function  $\\Psi(\\boldsymbol{w}_1, \\ldots, \\boldsymbol{w}_K; \\boldsymbol{v}) = \\sum_{k=1}^{K} p_k \\tilde{F}_k(\\boldsymbol{w}_k)$  is bounded below by some value  $F^*$ .",
+        "bbox": [
+            514,
+            534,
+            913,
+            579
+        ],
+        "page_idx": 8
+    },
+    {
+        "type": "text",
+        "text": "Assumption 3 (Bounded Stochastic Gradient Variance). The variance of the stochastic gradients computed on minibatches is bounded as follows",
+        "bbox": [
+            514,
+            584,
+            913,
+            627
+        ],
+        "page_idx": 8
+    },
+    {
+        "type": "equation",
+        "text": "\n$$\n\\mathbb {E} _ {\\mathcal {B}} \\left[ \\| \\nabla \\hat {f} _ {k} (\\boldsymbol {w}; \\mathcal {B}) - \\nabla f _ {k} (\\boldsymbol {w}) \\| ^ {2} \\right] \\leq \\sigma^ {2}, \\quad \\forall \\boldsymbol {w}. \\tag {2}\n$$\n",
+        "text_format": "latex",
+        "bbox": [
+            560,
+            635,
+            911,
+            669
+        ],
+        "page_idx": 8
+    },
+    {
+        "type": "text",
+        "text": "Assumption 4 (Bounded Task Gradient Variance). The stochastic gradient of the task loss  $f_{k}$  has a bounded second moment, i.e., there exists a constant  $G > 0$  such that  $\\mathbb{E}_{\\mathcal{B}}\\left[\\| \\nabla \\hat{f}_k(\\boldsymbol {w};\\mathcal{B})\\|^2\\right]\\leq G^2$  for all  $\\boldsymbol{\\mathsf{w}}$  and  $k$ .",
+        "bbox": [
+            514,
+            676,
+            913,
+            750
+        ],
+        "page_idx": 8
+    },
+    {
+        "type": "text",
+        "text": "B.2. Supporting Lemmas and Proofs. We now establish several key lemmas concerning the properties of the projection matrix norm, the client objective, model boundedness, and server aggregation.",
+        "bbox": [
+            514,
+            757,
+            913,
+            813
+        ],
+        "page_idx": 8
+    },
+    {
+        "type": "text",
+        "text": "Lemma 1 (Bounded Projection Norm). Let the projection matrix  $\\Phi \\in \\mathcal{R}^{m\\times n}$  be constructed as described in the \"Efficient Projection\" section, involving a normalized Hadamard matrix  $\\pmb{H}$ , a random sign matrix  $D$ , and a subsampling matrix  $S$ . The resulting operator has an exact spectral norm",
+        "bbox": [
+            514,
+            818,
+            913,
+            888
+        ],
+        "page_idx": 8
+    },
+    {
+        "type": "table",
+        "img_path": "images/0b596e3941bd65911f1638dd3ff3f497fea9ed7b591059e71365056c1af8228f.jpg",
+        "table_caption": [],
+        "table_footnote": [],
+        "table_body": "<table><tr><td>Value of λ</td><td>Accuracy (%)</td></tr><tr><td>5 × 10-7</td><td>86.46 ± 0.28</td></tr><tr><td>5 × 10-6</td><td>86.61 ± 0.21</td></tr><tr><td>5 × 10-5</td><td>86.24 ± 0.31</td></tr><tr><td>5 × 10-4</td><td>86.28 ± 0.25</td></tr><tr><td>5 × 10-2</td><td>86.48 ± 0.23</td></tr><tr><td>5 × 10-1</td><td>86.29 ± 0.35</td></tr></table>",
+        "bbox": [
+            112,
+            65,
+            323,
+            200
+        ],
+        "page_idx": 9
+    },
+    {
+        "type": "table",
+        "img_path": "images/c4ce5c78e64bd81b1530212057ba7c525af6b234c0af19fb9ecba2d57a012c32.jpg",
+        "table_caption": [
+            "(a) Impact of  $\\lambda$"
+        ],
+        "table_footnote": [],
+        "table_body": "<table><tr><td>Value of μ</td><td>Accuracy (%)</td></tr><tr><td>10-6</td><td>86.26 ± 0.29</td></tr><tr><td>10-5</td><td>87.03 ± 0.18</td></tr><tr><td>10-4</td><td>86.10 ± 0.24</td></tr><tr><td>10-3</td><td>86.34 ± 0.22</td></tr><tr><td>10-2</td><td>85.96 ± 0.33</td></tr><tr><td>10-1</td><td>85.99 ± 0.41</td></tr></table>",
+        "bbox": [
+            393,
+            66,
+            604,
+            199
+        ],
+        "page_idx": 9
+    },
+    {
+        "type": "table",
+        "img_path": "images/be04dde1c2e72346333afbf2159b306567bc1148a04e418f7414c86f6bb12522.jpg",
+        "table_caption": [
+            "(b) Impact of  $\\mu$"
+        ],
+        "table_footnote": [],
+        "table_body": "<table><tr><td>Value of γ</td><td>Accuracy (%)</td></tr><tr><td>101</td><td>86.82 ± 0.26</td></tr><tr><td>102</td><td>86.40 ± 0.30</td></tr><tr><td>103</td><td>86.21 ± 0.28</td></tr><tr><td>104</td><td>86.56 ± 0.24</td></tr><tr><td>105</td><td>87.03 ± 0.22</td></tr><tr><td>106</td><td>86.56 ± 0.31</td></tr></table>",
+        "bbox": [
+            673,
+            66,
+            883,
+            200
+        ],
+        "page_idx": 9
+    },
+    {
+        "type": "text",
+        "text": "(c) Impact of  $\\gamma$",
+        "bbox": [
+            732,
+            205,
+            823,
+            219
+        ],
+        "page_idx": 9
+    },
+    {
+        "type": "text",
+        "text": "Table 1: Sensitivity analysis of the key hyperparameters of pFed1BS ( $\\lambda$ ,  $\\mu$ , and  $\\gamma$ ) on the CIFAR-10 (Non-IID) dataset. We report the Top-1 test accuracy (\\%) as 'mean ± standard deviation' over multiple independent runs. The best result in each subtable is shown in bold.",
+        "bbox": [
+            81,
+            229,
+            913,
+            271
+        ],
+        "page_idx": 9
+    },
+    {
+        "type": "image",
+        "img_path": "images/bef17ef07c22b62c1eb99e4f238a46c68e13425586ab06fd6597dd5c8c49976c.jpg",
+        "image_caption": [],
+        "image_footnote": [],
+        "bbox": [
+            124,
+            297,
+            436,
+            422
+        ],
+        "page_idx": 9
+    },
+    {
+        "type": "image",
+        "img_path": "images/c43c69322921cc9acc268a6505873b61d0b8513a2849a57564a472c44627ecc0.jpg",
+        "image_caption": [
+            "(a) Test accuracy v.s. communication rounds.",
+            "(b) Average training loss  $\\nu .s.$  communication rounds.",
+            "Figure 3: Performance comparison of pFed1BS with a structured FHT-based projection versus a dense Gaussian projection."
+        ],
+        "image_footnote": [],
+        "bbox": [
+            125,
+            444,
+            436,
+            571
+        ],
+        "page_idx": 9
+    },
+    {
+        "type": "text",
+        "text": "given by:",
+        "bbox": [
+            83,
+            686,
+            148,
+            700
+        ],
+        "page_idx": 9
+    },
+    {
+        "type": "equation",
+        "text": "\n$$\n\\left\\| \\Phi \\right\\| = \\sqrt {\\frac {n ^ {\\prime}}{m}}, \\tag {3}\n$$\n",
+        "text_format": "latex",
+        "bbox": [
+            233,
+            700,
+            478,
+            734
+        ],
+        "page_idx": 9
+    },
+    {
+        "type": "text",
+        "text": "For our analysis, we formally assume that  $\\| \\Phi \\| = C_{\\Phi}$  where  $C_{\\Phi} = \\mathcal{O}\\left(\\sqrt{\\frac{n}{m}}\\right)$ .",
+        "bbox": [
+            83,
+            739,
+            477,
+            772
+        ],
+        "page_idx": 9
+    },
+    {
+        "type": "text",
+        "text": "Proof. The proof relies on analyzing the spectral norm of the operator  $\\Phi$ . Let us define the projection matrix as  $\\Phi = \\sqrt{\\frac{n'}{m}}\\mathbf{S}\\mathbf{H}\\mathbf{D}$ , where the dimensions and properties of the matrices are as described in the lemma and the \"Efficient Projection\" section. Specifically,  $\\pmb{D}$  is a diagonal sign matrix, satisfying  $D^{\\top}D = I_{n}$ .  $\\pmb{H}$  is a normalized Hadamard matrix, satisfying  $\\pmb{H}^{\\top}\\pmb{H} = \\pmb{I}_{n}^{\\prime}$ .  $\\pmb{S}$  is a subsampling matrix that",
+        "bbox": [
+            81,
+            781,
+            478,
+            888
+        ],
+        "page_idx": 9
+    },
+    {
+        "type": "text",
+        "text": "selects  $m$  rows from  $n^{\\prime}$  satisfying  $\\boldsymbol {S}\\boldsymbol{S}^{\\top} = \\boldsymbol{I}_{m}$  .Let us define an intermediate matrix  $\\mathbf{Q} = \\mathbf{SHD}$  . Then  $\\Phi = \\sqrt{\\frac{n^{\\prime}}{m}}\\mathbf{Q}$  The spectral norm of  $\\Phi$  is given by  $\\| \\Phi \\| = \\sqrt{\\frac{n^{\\prime}}{m}}\\| \\mathbf{Q}\\|$",
+        "bbox": [
+            514,
+            297,
+            911,
+            362
+        ],
+        "page_idx": 9
+    },
+    {
+        "type": "text",
+        "text": "The core of the proof is to compute the spectral norm of  $\\mathbf{Q}$ . We can do this by analyzing the matrix  $\\mathbf{QQ}^{\\top}$ :",
+        "bbox": [
+            516,
+            361,
+            913,
+            390
+        ],
+        "page_idx": 9
+    },
+    {
+        "type": "equation",
+        "text": "\n$$\n\\begin{array}{l} \\mathbf {Q} \\mathbf {Q} ^ {T} = (\\mathbf {S H D}) (\\mathbf {S H D}) ^ {T} \\\\ = (\\mathbf {S H D}) \\left(\\mathbf {D} ^ {T} \\mathbf {H} ^ {T} \\mathbf {S} ^ {T}\\right) \\\\ = \\mathbf {S} \\mathbf {H} (\\mathbf {D} \\mathbf {D} ^ {T}) \\mathbf {H} ^ {T} \\mathbf {S} ^ {T} \\\\ = \\mathbf {S H I n} ^ {\\prime} \\mathbf {H} ^ {T} \\mathbf {S} ^ {T} \\quad (\\text {s i n c e} \\mathbf {D D} ^ {T} = \\mathbf {I}) \\tag {4} \\\\ = \\mathbf {S} (\\mathbf {H} \\mathbf {H} ^ {T}) \\mathbf {S} ^ {T} \\\\ = \\mathbf {S} \\mathbf {I} n ^ {\\prime} \\mathbf {S} ^ {T} \\quad (\\text {s i n c e} \\mathbf {H} \\mathbf {H} ^ {T} = \\mathbf {I}) \\\\ = \\mathbf {S} \\mathbf {S} ^ {T} = \\mathbf {I} _ {m}. \\\\ \\end{array}\n$$\n",
+        "text_format": "latex",
+        "bbox": [
+            570,
+            392,
+            911,
+            531
+        ],
+        "page_idx": 9
+    },
+    {
+        "type": "text",
+        "text": "The eigenvalues of an identity matrix  $\\mathbf{I}_m$  are all 1. The eigenvalues of  $\\mathbf{Q}\\mathbf{Q}^{\\top}$  are the squared singular values of  $\\mathbf{Q}$ . Therefore, all non-zero singular values of  $\\mathbf{Q}$  must be 1. The spectral norm  $\\| \\mathbf{Q}\\|$  is defined as the largest singular value, so we have:",
+        "bbox": [
+            514,
+            535,
+            913,
+            603
+        ],
+        "page_idx": 9
+    },
+    {
+        "type": "equation",
+        "text": "\n$$\n\\left\\| \\mathbf {Q} \\right\\| = \\sigma_ {\\max } (\\mathbf {Q}) = 1. \\tag {5}\n$$\n",
+        "text_format": "latex",
+        "bbox": [
+            638,
+            604,
+            911,
+            619
+        ],
+        "page_idx": 9
+    },
+    {
+        "type": "text",
+        "text": "Substituting this result back into the expression for the norm of  $\\Phi$ , we get:",
+        "bbox": [
+            514,
+            621,
+            911,
+            648
+        ],
+        "page_idx": 9
+    },
+    {
+        "type": "equation",
+        "text": "\n$$\n\\left\\| \\boldsymbol {\\Phi} \\right\\| = \\sqrt {\\frac {n ^ {\\prime}}{m}} \\cdot \\left\\| \\mathbf {Q} \\right\\| = \\sqrt {\\frac {n ^ {\\prime}}{m}} \\cdot 1 = \\sqrt {\\frac {n ^ {\\prime}}{m}}. \\tag {6}\n$$\n",
+        "text_format": "latex",
+        "bbox": [
+            578,
+            652,
+            911,
+            686
+        ],
+        "page_idx": 9
+    },
+    {
+        "type": "text",
+        "text": "Finally, since  $n'$  is the smallest power of two greater than or equal to  $n$ , we can express the norm in asymptotic notation for our analysis:",
+        "bbox": [
+            514,
+            689,
+            911,
+            731
+        ],
+        "page_idx": 9
+    },
+    {
+        "type": "equation",
+        "text": "\n$$\nC _ {\\Phi} = \\mathcal {O} \\left(\\sqrt {\\frac {n}{m}}\\right). \\tag {7}\n$$\n",
+        "text_format": "latex",
+        "bbox": [
+            648,
+            734,
+            911,
+            768
+        ],
+        "page_idx": 9
+    },
+    {
+        "type": "text",
+        "text": "This completes the proof.",
+        "bbox": [
+            516,
+            771,
+            689,
+            786
+        ],
+        "page_idx": 9
+    },
+    {
+        "type": "text",
+        "text": "Lemma 2 (Client-Side Objective and Gradient). The client-side objective  $\\tilde{F}_k$  for a given client  $k$  and server message  $\\mathbf{v}$  is defined as:",
+        "bbox": [
+            514,
+            792,
+            911,
+            835
+        ],
+        "page_idx": 9
+    },
+    {
+        "type": "equation",
+        "text": "\n$$\n\\begin{array}{l} \\tilde {F} _ {k} (\\boldsymbol {w} _ {k}; \\boldsymbol {v}) = f _ {k} (\\boldsymbol {w} _ {k}) + \\lambda \\left(h _ {\\gamma} \\left(\\boldsymbol {\\Phi} \\boldsymbol {w} _ {k}\\right) - \\langle \\boldsymbol {v}, \\boldsymbol {\\Phi} \\boldsymbol {w} _ {k} \\rangle\\right) \\\\ + \\frac {\\mu}{2} \\| \\boldsymbol {w} _ {k} \\| _ {2} ^ {2}, \\tag {8} \\\\ \\end{array}\n$$\n",
+        "text_format": "latex",
+        "bbox": [
+            542,
+            840,
+            911,
+            886
+        ],
+        "page_idx": 9
+    },
+    {
+        "type": "text",
+        "text": "where  $h_{\\gamma}(z) = \\frac{1}{\\gamma}\\sum_{i=1}^{m}\\log(\\cosh(\\gamma z_i))$  is a differentiable surrogate for the  $\\ell_1$ -norm. The objective  $\\tilde{F}_k(\\boldsymbol{w}_k)$  is differentiable with respect to  $\\boldsymbol{w}_k$ , and its gradient is given by:",
+        "bbox": [
+            81,
+            66,
+            478,
+            116
+        ],
+        "page_idx": 10
+    },
+    {
+        "type": "equation",
+        "text": "\n$$\n\\begin{array}{l} \\nabla \\tilde {F} _ {k} (\\boldsymbol {w} _ {k}; \\boldsymbol {v}) = \\nabla f _ {k} (\\boldsymbol {w} _ {k}) + \\lambda \\boldsymbol {\\Phi} ^ {\\top} [ \\tanh  (\\gamma \\boldsymbol {\\Phi} \\boldsymbol {w} _ {k}) - \\boldsymbol {v} ] \\\\ \\quad + \\mu \\boldsymbol {w} _ {k}. \\end{array} \\tag {9}\n$$\n",
+        "text_format": "latex",
+        "bbox": [
+            101,
+            121,
+            478,
+            156
+        ],
+        "page_idx": 10
+    },
+    {
+        "type": "text",
+        "text": "Proof. The proof follows by direct differentiation of Equation 8. The gradient of the standard loss  $f_{k}(\\pmb{w}_{k})$  and the  $\\ell_2$  regularization term  $\\frac{\\mu}{2}\\| \\pmb{w}_k\\| _2^2$  are  $\\nabla f_k(\\pmb {w}_k)$  and  $\\mu \\pmb {w}_k$ , respectively. The key is the gradient of the term  $\\lambda (h_{\\gamma}(\\Phi \\pmb{w}_k) - \\langle \\pmb {v},\\pmb {\\Phi}\\pmb{w}_k\\rangle)$ . Using the chain rule, the gradient of  $h_\\gamma (\\Phi \\pmb {w}_k)$  with respect to  $\\pmb{w}_k$  is",
+        "bbox": [
+            81,
+            162,
+            478,
+            247
+        ],
+        "page_idx": 10
+    },
+    {
+        "type": "equation",
+        "text": "\n$$\n\\begin{array}{l} \\nabla_ {\\boldsymbol {w} _ {k}} h _ {\\gamma} (\\Phi \\boldsymbol {w} _ {k}) = \\Phi^ {\\top} \\nabla_ {\\boldsymbol {z}} h _ {\\gamma} (\\boldsymbol {z}) \\Big | _ {\\boldsymbol {z} = \\Phi \\boldsymbol {w} _ {k}} \\\\ = \\boldsymbol {\\Phi} ^ {\\top} \\tanh  (\\gamma \\boldsymbol {\\Phi} \\boldsymbol {w} _ {k}). \\tag {10} \\\\ \\end{array}\n$$\n",
+        "text_format": "latex",
+        "bbox": [
+            148,
+            253,
+            478,
+            299
+        ],
+        "page_idx": 10
+    },
+    {
+        "type": "text",
+        "text": "The gradient of  $-\\lambda \\langle \\pmb{v}, \\pmb{\\Phi} \\pmb{w}_k \\rangle$  is  $-\\lambda \\pmb{\\Phi}^\\top \\pmb{v}$ . Combining all terms yields the expression in Equation (9).",
+        "bbox": [
+            81,
+            306,
+            478,
+            338
+        ],
+        "page_idx": 10
+    },
+    {
+        "type": "text",
+        "text": "Remark 3. As the smoothing parameter  $\\gamma \\rightarrow \\infty$ , the function  $\\tanh (\\gamma z_i)$  converges pointwise to  $\\mathrm{sign}(z_i)$ , and the smooth surrogate  $h_\\gamma (\\Phi \\pmb {w}_k)$  approaches the non-smooth  $\\ell_1$  norm  $\\| \\Phi \\pmb {w}_k\\| _1$ . Consequently, for a large  $\\gamma$ , the gradient descent on  $\\tilde{F}_k(\\pmb {w}_k)$  closely approximates subgradient descent on the non-smooth objective:",
+        "bbox": [
+            81,
+            344,
+            478,
+            430
+        ],
+        "page_idx": 10
+    },
+    {
+        "type": "equation",
+        "text": "\n$$\n\\nabla \\tilde {F} _ {k} (\\boldsymbol {w} _ {k}; \\boldsymbol {v}) \\approx \\nabla f _ {k} (\\boldsymbol {w} _ {k}) + \\lambda \\boldsymbol {\\Phi} ^ {\\top} (\\operatorname {s i g n} (\\boldsymbol {\\Phi} \\boldsymbol {w} _ {k}) - \\boldsymbol {v}) + \\mu \\boldsymbol {w} _ {k}. \\tag {11}\n$$\n",
+        "text_format": "latex",
+        "bbox": [
+            83,
+            435,
+            478,
+            465
+        ],
+        "page_idx": 10
+    },
+    {
+        "type": "text",
+        "text": "Lemma 3 (Smoothness of Client Objective). Under Assumptions 1 and 1, the client-side objective  $\\tilde{F}_k(\\boldsymbol{w}_k; \\boldsymbol{v})$  is  $L_F$ -smooth with respect to  $\\boldsymbol{w}_k$  with high probability, where the smoothness constant is given by:",
+        "bbox": [
+            81,
+            469,
+            478,
+            527
+        ],
+        "page_idx": 10
+    },
+    {
+        "type": "equation",
+        "text": "\n$$\nL _ {F} = L + \\lambda \\gamma C _ {\\Phi} ^ {2} + \\mu . \\tag {12}\n$$\n",
+        "text_format": "latex",
+        "bbox": [
+            202,
+            532,
+            478,
+            550
+        ],
+        "page_idx": 10
+    },
+    {
+        "type": "text",
+        "text": "Proof. A function is  $L_{F}$ -smooth if its Hessian  $\\nabla^2\\tilde{F}_k(\\boldsymbol{w}_k;\\boldsymbol{v})$  satisfies  $\\| \\nabla^2\\tilde{F}_k(\\boldsymbol{w}_k;\\boldsymbol{v}) \\| \\leq L_F$  for all  $\\boldsymbol{w}_k$ . We analyze the Hessian of  $\\tilde{F}_k(\\boldsymbol{w}_k;\\boldsymbol{v})$  by decomposing it into its three constituent parts:",
+        "bbox": [
+            81,
+            555,
+            480,
+            614
+        ],
+        "page_idx": 10
+    },
+    {
+        "type": "equation",
+        "text": "\n$$\n\\begin{array}{l} \\tilde {F} _ {k} (\\boldsymbol {w} _ {k}; \\boldsymbol {v}) = f _ {k} (\\boldsymbol {w} _ {k}) + \\lambda \\left(h _ {\\gamma} \\left(\\Phi \\boldsymbol {w} _ {k}\\right) - \\langle \\boldsymbol {v}, \\Phi \\boldsymbol {w} _ {k} \\rangle\\right) \\\\ + \\frac {\\mu}{2} \\| \\boldsymbol {w} _ {k} \\| _ {2} ^ {2}. \\tag {13} \\\\ \\end{array}\n$$\n",
+        "text_format": "latex",
+        "bbox": [
+            109,
+            621,
+            478,
+            667
+        ],
+        "page_idx": 10
+    },
+    {
+        "type": "text",
+        "text": "The Hessian of the sum is the sum of the Hessians. We bound the spectral norm of the Hessian for each part as follows.",
+        "bbox": [
+            81,
+            672,
+            478,
+            713
+        ],
+        "page_idx": 10
+    },
+    {
+        "type": "list",
+        "sub_type": "text",
+        "list_items": [
+            "- By Assumption 1,  $f_{k}$  is  $L_{F}$ -smooth, which  $\\| \\nabla^{2}f_{k}(\\boldsymbol{w}_{k})\\| \\leq L$ .",
+            "- The  $\\ell_2$  regularization term  $\\frac{\\mu}{2}\\|\\pmb{w}_k\\|_2^2$  has a gradient of  $\\mu \\pmb{w}_k$  and a constant Hessian of  $\\nabla^2\\left(\\frac{\\mu}{2}\\|\\pmb{w}_k\\|_2^2\\right) = \\mu I$ . The spectral norm of this Hessian is  $\\|\\mu I\\| = \\mu$ .",
+            "- The term  $\\langle \\pmb{v}, \\pmb{\\Phi} \\pmb{w}_k \\rangle$  is linear in  $\\pmb{w}_k$ , so its Hessian is zero.",
+            "- We only need to analyze the Hessian of  $\\lambda h_{\\gamma (\\Phi \\pmb{w}_k)}$ . From Lemma 2, the gradient is  $\\lambda \\Phi^\\top \\tanh (\\gamma \\Phi \\pmb{w}_k)$ . Taking the derivative with respect to  $\\pmb{w}_k$  again yields the Hessian:"
+        ],
+        "bbox": [
+            89,
+            720,
+            478,
+            853
+        ],
+        "page_idx": 10
+    },
+    {
+        "type": "equation",
+        "text": "\n$$\n\\nabla^ {2} \\left(\\lambda h _ {\\gamma} (\\boldsymbol {\\Phi} \\boldsymbol {w})\\right) = \\lambda \\gamma \\boldsymbol {\\Phi} ^ {\\top} \\operatorname {d i a g} \\left(\\operatorname {s e c h} ^ {2} \\left(\\gamma \\left(\\boldsymbol {\\Phi} \\boldsymbol {w} _ {k}\\right) _ {i}\\right)\\right) \\boldsymbol {\\Phi}. \\tag {14}\n$$\n",
+        "text_format": "latex",
+        "bbox": [
+            114,
+            857,
+            478,
+            888
+        ],
+        "page_idx": 10
+    },
+    {
+        "type": "text",
+        "text": "The spectral norm of this Hessian is bounded as follows:",
+        "bbox": [
+            537,
+            69,
+            911,
+            83
+        ],
+        "page_idx": 10
+    },
+    {
+        "type": "equation",
+        "text": "\n$$\n\\begin{array}{l} \\| \\lambda \\gamma \\pmb {\\Phi} ^ {\\top} \\mathrm {d i a g} (\\mathrm {s e c h} ^ {2} (\\gamma (\\pmb {\\Phi} \\pmb {w} _ {k}) _ {i}) \\pmb {\\Phi} \\| \\\\ \\leq \\lambda \\gamma \\| \\boldsymbol {\\Phi} ^ {\\top} \\| \\| \\mathrm {d i a g} (\\mathrm {s e c h} ^ {2} (\\gamma (\\boldsymbol {\\Phi} \\boldsymbol {w} _ {k}) _ {i}) \\| \\| \\boldsymbol {\\Phi} \\| \\\\ = \\lambda \\gamma \\| \\operatorname {d i a g} \\left(\\operatorname {s e c h} ^ {2} \\left(\\gamma \\left(\\boldsymbol {\\Phi} \\boldsymbol {w} _ {k}\\right) _ {i}\\right) \\| \\| \\boldsymbol {\\Phi} \\| ^ {2}. \\right. \\tag {15} \\\\ \\end{array}\n$$\n",
+        "text_format": "latex",
+        "bbox": [
+            584,
+            87,
+            911,
+            147
+        ],
+        "page_idx": 10
+    },
+    {
+        "type": "text",
+        "text": "Since  $0 \\leq \\operatorname{sech}^2(z) \\leq 1$  for any  $z \\in \\mathbb{R}$ , the spectral norm of the diagonal matrix  $\\operatorname{diag}(\\operatorname{sech}^2(\\gamma(\\Phi w_k)_i))$  is  $\\| \\operatorname{diag}(\\operatorname{sech}^2(\\gamma(\\Phi w_k)_i)) \\| \\leq 1$ . From Assumption 1, we have  $\\| \\Phi \\| \\leq C_\\Phi$ . Substituting these bounds gives:",
+        "bbox": [
+            537,
+            152,
+            913,
+            215
+        ],
+        "page_idx": 10
+    },
+    {
+        "type": "equation",
+        "text": "\n$$\n\\left\\| \\nabla^ {2} \\left(\\lambda h _ {\\gamma} \\left(\\boldsymbol {\\Phi} \\boldsymbol {w} _ {k}\\right)\\right) \\right\\| \\leq \\lambda \\gamma C _ {\\Phi} ^ {2}. \\tag {16}\n$$\n",
+        "text_format": "latex",
+        "bbox": [
+            627,
+            219,
+            911,
+            237
+        ],
+        "page_idx": 10
+    },
+    {
+        "type": "text",
+        "text": "By the triangle inequality, the norm of the total Hessian is bounded by the sum of the norms of the individual Hessians:",
+        "bbox": [
+            514,
+            242,
+            913,
+            270
+        ],
+        "page_idx": 10
+    },
+    {
+        "type": "equation",
+        "text": "\n$$\n\\left\\| \\nabla^ {2} \\tilde {F} _ {k} (\\boldsymbol {w} _ {k}; \\boldsymbol {v}) \\right\\| \\leq L + \\lambda \\gamma C _ {\\Phi} ^ {2} + \\mu . \\tag {17}\n$$\n",
+        "text_format": "latex",
+        "bbox": [
+            594,
+            275,
+            911,
+            294
+        ],
+        "page_idx": 10
+    },
+    {
+        "type": "image",
+        "img_path": "images/01b3d476f7712801c0540204d87c01883b071cf23238ec8cc18fc46711a8db3d.jpg",
+        "image_caption": [],
+        "image_footnote": [],
+        "bbox": [
+            895,
+            299,
+            911,
+            310
+        ],
+        "page_idx": 10
+    },
+    {
+        "type": "text",
+        "text": "Lemma 4 (Bounded Model Norm). Let Assumption 1-4 hold. For a learning rate  $\\eta$  satisfying  $\\eta < \\frac{1}{3\\mu}$ , the expected squared norm of the client weights is uniformly bounded across all rounds  $t$  with high probability:",
+        "bbox": [
+            514,
+            320,
+            913,
+            378
+        ],
+        "page_idx": 10
+    },
+    {
+        "type": "equation",
+        "text": "\n$$\n\\mathbb {E} \\left[ \\| \\boldsymbol {w} _ {k} ^ {t} \\| _ {2} ^ {2} \\right] \\leq W ^ {2}, \\quad \\forall t \\geq 0, \\tag {18}\n$$\n",
+        "text_format": "latex",
+        "bbox": [
+            617,
+            382,
+            911,
+            400
+        ],
+        "page_idx": 10
+    },
+    {
+        "type": "text",
+        "text": "where the bound  $W$  is defined as",
+        "bbox": [
+            516,
+            405,
+            736,
+            419
+        ],
+        "page_idx": 10
+    },
+    {
+        "type": "equation",
+        "text": "\n$$\nW ^ {2} \\triangleq \\max  \\left(\\| \\boldsymbol {w} _ {k} ^ {0} \\| _ {2} ^ {2}, \\frac {C ^ {\\prime}}{(1 - \\alpha) (1 - \\alpha^ {R})}\\right) \\tag {19}\n$$\n",
+        "text_format": "latex",
+        "bbox": [
+            575,
+            422,
+            911,
+            458
+        ],
+        "page_idx": 10
+    },
+    {
+        "type": "text",
+        "text": "with constants  $\\alpha = 1 - \\eta \\mu (1 - 3\\eta \\mu)$  and  $C^\\prime$  given by:",
+        "bbox": [
+            516,
+            462,
+            879,
+            477
+        ],
+        "page_idx": 10
+    },
+    {
+        "type": "equation",
+        "text": "\n$$\nC ^ {\\prime} \\triangleq \\left(\\frac {\\eta}{\\mu} + 3 \\eta^ {2}\\right) G ^ {2} + 3 \\eta^ {2} \\lambda^ {2} \\left(2 C _ {\\Phi} \\sqrt {m}\\right) ^ {2}. \\tag {20}\n$$\n",
+        "text_format": "latex",
+        "bbox": [
+            553,
+            482,
+            911,
+            516
+        ],
+        "page_idx": 10
+    },
+    {
+        "type": "text",
+        "text": "Proof. For simplicity, we analyze the local updates for a single client  $k$  within a communication round  $t$ . We denote  $\\boldsymbol{w}_r \\triangleq \\boldsymbol{w}_{k,r}^{t+1}$ . The update rule for the client model is:",
+        "bbox": [
+            516,
+            518,
+            913,
+            565
+        ],
+        "page_idx": 10
+    },
+    {
+        "type": "equation",
+        "text": "\n$$\n\\boldsymbol {w} _ {r + 1} = \\boldsymbol {w} _ {r} - \\eta \\boldsymbol {d} _ {r}, \\tag {21}\n$$\n",
+        "text_format": "latex",
+        "bbox": [
+            647,
+            571,
+            911,
+            585
+        ],
+        "page_idx": 10
+    },
+    {
+        "type": "text",
+        "text": "where  $\\pmb{d}_r = \\nabla \\hat{f}_k(\\pmb{w}_r; \\mathcal{B}_r) + \\lambda \\nabla \\tilde{g}(\\pmb{v}^t, \\pmb{\\Phi}\\pmb{w}_r) + \\mu \\pmb{w}_r$  is the stochastic subgradient of the client objective.",
+        "bbox": [
+            514,
+            592,
+            911,
+            621
+        ],
+        "page_idx": 10
+    },
+    {
+        "type": "text",
+        "text": "We analyze the evolution of the squared  $\\ell_2$ -norm of  $\\pmb{w}_{r + 1}$ :",
+        "bbox": [
+            516,
+            621,
+            911,
+            637
+        ],
+        "page_idx": 10
+    },
+    {
+        "type": "equation",
+        "text": "\n$$\n\\mathbb {E} [ \\| \\boldsymbol {w} _ {r + 1} \\| _ {2} ^ {2} ] = \\mathbb {E} [ \\| \\boldsymbol {w} _ {r} \\| _ {2} ^ {2} ] - 2 \\eta \\mathbb {E} [ \\langle \\boldsymbol {w} _ {r}, \\boldsymbol {d} _ {r} \\rangle ] + \\eta^ {2} \\mathbb {E} [ \\| \\boldsymbol {d} _ {r} \\| _ {2} ^ {2} ]. \\tag {22}\n$$\n",
+        "text_format": "latex",
+        "bbox": [
+            519,
+            638,
+            911,
+            670
+        ],
+        "page_idx": 10
+    },
+    {
+        "type": "text",
+        "text": "First, we bound the inner product term. The inner product term  $\\langle \\pmb{w}_r, \\pmb{d}_r \\rangle$  could be written as:",
+        "bbox": [
+            516,
+            675,
+            913,
+            705
+        ],
+        "page_idx": 10
+    },
+    {
+        "type": "equation",
+        "text": "\n$$\n\\begin{array}{l} \\langle \\boldsymbol {w} _ {r}, \\boldsymbol {d} _ {r} \\rangle = \\langle \\boldsymbol {w} _ {r}, \\nabla \\hat {f} _ {k} (\\boldsymbol {w} _ {r}; \\mathcal {B} _ {r}) + \\lambda \\nabla \\tilde {g} (\\boldsymbol {v} ^ {t}, \\boldsymbol {\\Phi} \\boldsymbol {w} _ {r}) + \\mu \\boldsymbol {w} _ {r} \\rangle \\\\ = \\langle \\boldsymbol {w} _ {r}, \\nabla \\hat {f} _ {k} (\\boldsymbol {w} _ {r}; \\mathcal {B} _ {r}) \\rangle + \\lambda \\langle \\boldsymbol {w} _ {r}, \\nabla \\tilde {g} (\\boldsymbol {v} ^ {t}, \\boldsymbol {\\Phi} \\boldsymbol {w} _ {r}) \\rangle \\\\ + \\mu \\| \\boldsymbol {w} _ {r} \\| _ {2} ^ {2}. \\tag {23} \\\\ \\end{array}\n$$\n",
+        "text_format": "latex",
+        "bbox": [
+            521,
+            710,
+            911,
+            770
+        ],
+        "page_idx": 10
+    },
+    {
+        "type": "text",
+        "text": "The term  $\\mu \\| \\pmb{w}_r\\| _2^2$  provides the key dissipative effect. For the second term, we have:",
+        "bbox": [
+            516,
+            775,
+            913,
+            803
+        ],
+        "page_idx": 10
+    },
+    {
+        "type": "equation",
+        "text": "\n$$\n\\begin{array}{l} \\langle \\boldsymbol {w} _ {r}, \\nabla \\tilde {g} \\rangle = \\langle \\boldsymbol {w} _ {r}, \\boldsymbol {\\Phi} ^ {\\top} (\\tanh  (\\gamma \\boldsymbol {\\Phi} \\boldsymbol {w} _ {r}) - \\boldsymbol {v} ^ {t}) \\rangle \\\\ \\approx \\langle \\boldsymbol {w} _ {r}, \\boldsymbol {\\Phi} ^ {\\top} (\\operatorname {s i g n} (\\boldsymbol {\\Phi} \\boldsymbol {w} _ {r}) - \\boldsymbol {v} ^ {t}) \\rangle \\\\ = \\left\\langle \\boldsymbol {\\Phi} \\boldsymbol {w} _ {r}, \\operatorname {s i g n} \\left(\\boldsymbol {\\Phi} \\boldsymbol {w} _ {r}\\right) - \\boldsymbol {v} ^ {t} \\right\\rangle \\\\ = \\| \\boldsymbol {\\Phi} \\boldsymbol {w} _ {r} \\| _ {1} - \\left\\langle \\boldsymbol {\\Phi} \\boldsymbol {w} _ {r}, \\boldsymbol {v} ^ {t} \\right\\rangle \\geq 0, \\tag {24} \\\\ \\end{array}\n$$\n",
+        "text_format": "latex",
+        "bbox": [
+            568,
+            806,
+            911,
+            886
+        ],
+        "page_idx": 10
+    },
+    {
+        "type": "text",
+        "text": "where the inequality follows from the property that  $\\pmb{v}^t$  has entries in  $\\{-1,0,1\\}$ , and thus by the Hölder's inequality,  $\\langle \\Phi \\pmb{w}_r, \\pmb{v}^t \\rangle \\leq \\| \\Phi \\pmb{w}_r \\|_1 \\| \\pmb{v}^t \\|_{\\infty} \\leq \\| \\Phi \\pmb{w}_r \\|_1$ . Therefore, the second term in Eq. (23) is non-negative. Taking expectation of Eq. (23) over the mini-batch  $\\mathcal{B}_r$ :",
+        "bbox": [
+            83,
+            68,
+            478,
+            138
+        ],
+        "page_idx": 11
+    },
+    {
+        "type": "equation",
+        "text": "\n$$\n\\begin{array}{l} \\mathbb {E} [ \\langle \\boldsymbol {w} _ {r}, \\boldsymbol {d} _ {r} \\rangle ] = \\mathbb {E} [ \\langle \\boldsymbol {w} _ {r}, \\nabla \\hat {f} _ {k} (\\boldsymbol {w} _ {r}; \\mathcal {B} _ {r}) \\rangle ] + \\lambda \\mathbb {E} [ \\langle \\boldsymbol {w} _ {r}, \\nabla \\tilde {g} \\rangle ] \\\\ + \\mu \\mathbb {E} [ \\| \\boldsymbol {w} _ {r} \\| _ {2} ^ {2} ] \\\\ \\geq \\mathbb {E} [ \\langle \\boldsymbol {w} _ {r}, \\nabla \\hat {f} _ {k} (\\boldsymbol {w} _ {r}; \\mathcal {B} _ {r}) \\rangle ] + \\mu \\mathbb {E} [ \\| \\boldsymbol {w} _ {r} \\| _ {2} ^ {2} ], \\tag {25} \\\\ \\end{array}\n$$\n",
+        "text_format": "latex",
+        "bbox": [
+            99,
+            143,
+            478,
+            217
+        ],
+        "page_idx": 11
+    },
+    {
+        "type": "text",
+        "text": "Applying Cauchy-Schwarz and Young's inequality with a parameter  $\\epsilon > 0$  to the remaining term:",
+        "bbox": [
+            83,
+            223,
+            478,
+            252
+        ],
+        "page_idx": 11
+    },
+    {
+        "type": "equation",
+        "text": "\n$$\n\\begin{array}{l} - \\mathbb {E} [ \\langle \\boldsymbol {w} _ {r}, \\nabla \\hat {f} _ {k} (\\boldsymbol {w} _ {r}; \\mathcal {B} _ {r}) \\rangle ] \\\\ \\leq \\mathbb {E} [ \\| \\boldsymbol {w} _ {r} \\| _ {2} \\| \\nabla \\hat {f} _ {k} (\\boldsymbol {w} _ {r}; \\mathcal {B} _ {r}) \\| _ {2} ] \\\\ \\leq \\frac {\\epsilon}{2} \\mathbb {E} [ \\| \\boldsymbol {w} _ {r} \\| _ {2} ^ {2} ] + \\frac {1}{2 \\epsilon} \\mathbb {E} [ \\| \\nabla \\hat {f} _ {k} (\\boldsymbol {w} _ {r}; \\mathcal {B} _ {r}) \\| _ {2} ^ {2} ] \\\\ \\leq \\frac {\\epsilon}{2} \\mathbb {E} [ \\| \\boldsymbol {w} _ {r} \\| _ {2} ^ {2} ] + \\frac {G ^ {2}}{2 \\epsilon}, \\tag {26} \\\\ \\end{array}\n$$\n",
+        "text_format": "latex",
+        "bbox": [
+            150,
+            257,
+            477,
+            361
+        ],
+        "page_idx": 11
+    },
+    {
+        "type": "text",
+        "text": "where we use the Assumption 4  $(\\mathbb{E}[\\| \\nabla \\hat{f}_k(\\pmb {w}_r;\\mathcal{B}_r)\\| _2^2\\leq G^2)$  Combining these, we get:",
+        "bbox": [
+            83,
+            366,
+            477,
+            397
+        ],
+        "page_idx": 11
+    },
+    {
+        "type": "equation",
+        "text": "\n$$\n- 2 \\eta \\mathbb {E} [ \\langle \\boldsymbol {w} _ {r}, \\boldsymbol {d} _ {r} \\rangle ] \\leq - 2 \\eta \\mu \\mathbb {E} [ \\| \\boldsymbol {w} _ {r} \\| _ {2} ^ {2} ] + \\eta \\epsilon \\mathbb {E} [ \\| \\boldsymbol {w} _ {r} \\| _ {2} ^ {2} ] + \\frac {\\eta}{\\epsilon} G ^ {2}. \\tag {27}\n$$\n",
+        "text_format": "latex",
+        "bbox": [
+            84,
+            402,
+            477,
+            439
+        ],
+        "page_idx": 11
+    },
+    {
+        "type": "text",
+        "text": "Next, we bound the squared norm of the stochastic gradient,  $\\mu \\| \\pmb{d}_r\\| _2^2$",
+        "bbox": [
+            83,
+            440,
+            478,
+            469
+        ],
+        "page_idx": 11
+    },
+    {
+        "type": "equation",
+        "text": "\n$$\n\\begin{array}{l} \\mathbb {E} \\left[ \\| \\boldsymbol {d} _ {r} \\| _ {2} ^ {2} \\right] = \\mathbb {E} \\left[ \\| \\nabla \\hat {f} _ {k} (\\boldsymbol {w} _ {r}; \\mathcal {B} _ {r}) + \\lambda \\nabla \\tilde {g} + \\mu \\boldsymbol {w} _ {r} \\| _ {2} ^ {2} \\right] \\\\ \\leq 3 (\\mathbb {E} [ \\| \\nabla \\hat {f} _ {k} (\\boldsymbol {w} _ {r}; \\mathcal {B} _ {r}) \\| _ {2} ^ {2} ] + \\lambda^ {2} \\mathbb {E} [ \\| \\nabla \\tilde {g} \\| _ {2} ^ {2} \\\\ + \\mu^ {2} \\mathbb {E} [ \\| \\boldsymbol {w} _ {r} \\| _ {2} ^ {2}) ] \\\\ \\leq 3 \\left(G ^ {2} + \\lambda^ {2} C _ {g} ^ {2} + \\mu^ {2} \\mathbb {E} [ \\| \\boldsymbol {w} _ {r} \\| _ {2} ^ {2} ]\\right), \\tag {28} \\\\ \\end{array}\n$$\n",
+        "text_format": "latex",
+        "bbox": [
+            119,
+            474,
+            475,
+            554
+        ],
+        "page_idx": 11
+    },
+    {
+        "type": "text",
+        "text": "where we define the constant  $C_g \\triangleq 2C_{\\Phi}\\sqrt{m}$ , since  $\\| \\nabla \\tilde{g} \\|_2^2 = \\| \\Phi^\\top(\\mathrm{sign}(\\Phi \\pmb{w}_r) - \\pmb{v}^t) \\|_2^2 \\leq \\| \\Phi^\\top \\|_2^2 \\| (\\mathrm{sign}(\\Phi \\pmb{w}_r) - \\pmb{v}^t) \\|_2^2 \\leq C_{\\Phi} \\cdot 2\\sqrt{m}$ .",
+        "bbox": [
+            83,
+            561,
+            478,
+            607
+        ],
+        "page_idx": 11
+    },
+    {
+        "type": "text",
+        "text": "Finally, we combine the bounds. Substituting everything back into the main expansion:",
+        "bbox": [
+            83,
+            607,
+            477,
+            633
+        ],
+        "page_idx": 11
+    },
+    {
+        "type": "equation",
+        "text": "\n$$\n\\begin{array}{l} \\mathbb {E} [ \\| \\boldsymbol {w} _ {r + 1} \\| _ {2} ^ {2} ] \\\\ = \\mathbb {E} [ \\| \\boldsymbol {w} _ {r} \\| _ {2} ^ {2} ] - 2 \\eta \\mathbb {E} [ \\langle \\boldsymbol {w} _ {r}, \\boldsymbol {d} _ {r} \\rangle ] + \\eta^ {2} \\mathbb {E} [ \\| \\boldsymbol {d} _ {r} \\| _ {2} ^ {2} ] \\\\ \\leq \\mathbb {E} [ \\| \\boldsymbol {w} _ {r} \\| _ {2} ^ {2} ] + \\left(- 2 \\eta \\mu \\mathbb {E} [ \\| \\boldsymbol {w} _ {r} \\| _ {2} ^ {2} ] + \\eta \\epsilon \\mathbb {E} [ \\| \\boldsymbol {w} _ {r} \\| _ {2} ^ {2} ] + \\frac {\\eta}{\\epsilon} G ^ {2}\\right) \\\\ + 3 \\eta^ {2} \\left(G ^ {2} + \\lambda^ {2} C _ {g} ^ {2} + \\mu^ {2} \\mathbb {E} [ \\| \\boldsymbol {w} _ {r} \\| _ {2} ^ {2} ]\\right) \\\\ = (1 - 2 \\eta \\mu + \\eta \\epsilon + 3 \\eta^ {2} \\mu^ {2}) \\mathbb {E} [ \\| \\boldsymbol {w} _ {r} \\| ^ {2} ] \\\\ + \\left(\\frac {\\eta}{\\epsilon} + 3 \\eta^ {2}\\right) G ^ {2} + 3 \\eta^ {2} \\lambda^ {2} C _ {g} ^ {2}. \\tag {29} \\\\ \\end{array}\n$$\n",
+        "text_format": "latex",
+        "bbox": [
+            89,
+            638,
+            477,
+            773
+        ],
+        "page_idx": 11
+    },
+    {
+        "type": "text",
+        "text": "This inequality holds for any  $\\epsilon > 0$ . We make a strategic choice to simplify the coefficient of  $\\mathbb{E}[\\| \\pmb{w}_r\\|_2^2]$ . Let  $\\epsilon = \\mu$ .",
+        "bbox": [
+            83,
+            777,
+            478,
+            808
+        ],
+        "page_idx": 11
+    },
+    {
+        "type": "equation",
+        "text": "\n$$\n\\begin{array}{l} \\mathbb {E} [ \\| \\boldsymbol {w} _ {r + 1} \\| _ {2} ^ {2} ] \\leq (1 - 2 \\eta \\mu + \\eta \\mu + 3 \\eta^ {2} \\mu^ {2}) \\mathbb {E} [ \\| \\boldsymbol {w} _ {r} \\| _ {2} ^ {2} ] \\\\ + \\left(\\frac {\\eta}{\\mu} + 3 \\eta^ {2}\\right) G ^ {2} + 3 \\eta^ {2} \\lambda^ {2} C _ {g} ^ {2} \\\\ = \\left(1 - \\eta \\mu + 3 \\eta^ {2} \\mu^ {2}\\right) \\mathbb {E} \\left[ \\| \\boldsymbol {w} _ {r} \\| _ {2} ^ {2} \\right] + C ^ {\\prime}, \\tag {30} \\\\ \\end{array}\n$$\n",
+        "text_format": "latex",
+        "bbox": [
+            99,
+            811,
+            477,
+            886
+        ],
+        "page_idx": 11
+    },
+    {
+        "type": "text",
+        "text": "where we define  $C' \\triangleq (\\frac{\\eta}{\\mu} + 3\\eta^2)G^2 + 3\\eta^2\\lambda^2 C_q^2$ .",
+        "bbox": [
+            516,
+            66,
+            846,
+            84
+        ],
+        "page_idx": 11
+    },
+    {
+        "type": "text",
+        "text": "To ensure contraction, we require the coefficient of  $\\mathbb{E}[\\| \\pmb{w}_r\\|_2^2]$  to be strictly less than 1. We need  $1 - \\eta \\mu + 3\\eta^2\\mu^2 < 1$ , which simplifies to  $-\\eta \\mu + 3\\eta^2\\mu^2 < 0$ . Since  $\\eta, \\mu > 0$ , we can divide by  $\\eta \\mu$ , yielding  $-1 + 3\\eta \\mu < 0$ . This gives the condition  $\\eta < \\frac{1}{3\\mu}$ .",
+        "bbox": [
+            516,
+            85,
+            913,
+            157
+        ],
+        "page_idx": 11
+    },
+    {
+        "type": "text",
+        "text": "By choosing  $\\eta < \\frac{1}{3\\mu}$ , we have  $3\\eta \\mu < 1$ . The coefficient can be written as  $1 - \\eta \\mu (1 - 3\\eta \\mu)$ . Let  $\\alpha = 1 - \\eta \\mu (1 - 3\\eta \\mu) < 1$ . We obtain the recursive relationship:",
+        "bbox": [
+            516,
+            157,
+            911,
+            203
+        ],
+        "page_idx": 11
+    },
+    {
+        "type": "equation",
+        "text": "\n$$\n\\mathbb {E} \\left[ \\| \\boldsymbol {w} _ {r + 1} \\| _ {2} ^ {2} \\right] \\leq \\alpha \\mathbb {E} \\left[ \\| \\boldsymbol {w} _ {r} \\| _ {2} ^ {2} \\right] + C ^ {\\prime}. \\tag {31}\n$$\n",
+        "text_format": "latex",
+        "bbox": [
+            602,
+            205,
+            911,
+            223
+        ],
+        "page_idx": 11
+    },
+    {
+        "type": "text",
+        "text": "This recursive inequality holds for each local step  $r$  within any communication round  $t + 1$ . By applying this inequality recursively  $R$  times from  $r = 0$  to  $r = R - 1$ , starting with the model from the previous round  $\\boldsymbol{w}_k^t$ :",
+        "bbox": [
+            516,
+            224,
+            911,
+            281
+        ],
+        "page_idx": 11
+    },
+    {
+        "type": "equation",
+        "text": "\n$$\n\\begin{array}{l} \\mathbb {E} [ \\| \\boldsymbol {w} _ {k, R} ^ {t + 1} \\| _ {2} ^ {2} ] \\leq \\alpha \\mathbb {E} [ \\| \\boldsymbol {w} _ {k, R - 1} ^ {t + 1} \\| _ {2} ^ {2} ] + C ^ {\\prime} \\\\ \\leq \\alpha^ {R} \\mathbb {E} [ \\| \\boldsymbol {w} _ {k, 0} ^ {t + 1} \\| _ {2} ^ {2} ] + C ^ {\\prime} \\sum_ {i = 0} ^ {R - 1} \\alpha^ {i} \\\\ \\leq \\alpha^ {R} \\mathbb {E} [ \\| \\boldsymbol {w} _ {k} ^ {t} \\| _ {2} ^ {2} ] + \\frac {C ^ {\\prime}}{1 - \\alpha} \\\\ = \\alpha^ {R} \\mathbb {E} [ \\| \\boldsymbol {w} _ {k} ^ {t} \\| _ {2} ^ {2} ] + \\frac {C ^ {\\prime}}{\\eta \\mu (1 - 3 \\eta \\mu)}. \\tag {32} \\\\ \\end{array}\n$$\n",
+        "text_format": "latex",
+        "bbox": [
+            550,
+            284,
+            911,
+            415
+        ],
+        "page_idx": 11
+    },
+    {
+        "type": "text",
+        "text": "Since  $\\pmb{w}_k^{t + 1}$  is used as the starting point for the next round, we have established a recursive relationship across communication rounds:",
+        "bbox": [
+            516,
+            417,
+            911,
+            459
+        ],
+        "page_idx": 11
+    },
+    {
+        "type": "equation",
+        "text": "\n$$\n\\mathbb {E} \\left[ \\| \\boldsymbol {w} _ {k} ^ {t + 1} \\| _ {2} ^ {2} \\right] \\leq \\alpha^ {R} \\mathbb {E} \\left[ \\| \\boldsymbol {w} _ {k} ^ {t} \\| _ {2} ^ {2} \\right] + \\frac {C ^ {\\prime}}{\\eta \\mu (1 - 3 \\eta \\mu)}. \\tag {33}\n$$\n",
+        "text_format": "latex",
+        "bbox": [
+            547,
+            460,
+            911,
+            494
+        ],
+        "page_idx": 11
+    },
+    {
+        "type": "text",
+        "text": "As  $\\alpha \\in (0,1)$ , the term  $\\alpha^R$  is also a constant contraction factor less than 1. This relationship ensures that the sequence of expected squared norms  $\\{\\mathbb{E}[\\| \\pmb{w}_k^t\\|_2^2]\\}_{t = 0}^{T - 1}$  cannot diverge.",
+        "bbox": [
+            516,
+            496,
+            911,
+            541
+        ],
+        "page_idx": 11
+    },
+    {
+        "type": "text",
+        "text": "Therefore, the sequence is uniformly bounded. A simple upper bound for all  $t \\geq 0$  is given by the maximum of its starting value and the fixed-point value of the recursion:",
+        "bbox": [
+            516,
+            541,
+            911,
+            582
+        ],
+        "page_idx": 11
+    },
+    {
+        "type": "equation",
+        "text": "\n$$\n\\begin{array}{l} \\mathbb {E} \\left[ \\| \\boldsymbol {w} _ {k} ^ {t} \\| _ {2} ^ {2} \\right] \\leq \\max  \\left(\\| \\boldsymbol {w} _ {k} ^ {0} \\| _ {2} ^ {2}, \\frac {C ^ {\\prime}}{\\eta \\mu (1 - 3 \\eta \\mu) (1 - \\alpha^ {R})}\\right) \\\\ = \\max  \\left(\\| \\boldsymbol {w} _ {k} ^ {0} \\| _ {2} ^ {2}, \\frac {C ^ {\\prime}}{(1 - \\alpha) (1 - \\alpha^ {R})}\\right). \\tag {34} \\\\ \\end{array}\n$$\n",
+        "text_format": "latex",
+        "bbox": [
+            540,
+            585,
+            911,
+            652
+        ],
+        "page_idx": 11
+    },
+    {
+        "type": "text",
+        "text": "Since all terms on the right-hand side are constants independent of  $t$ , this proves the uniform boundedness and completes the proof.",
+        "bbox": [
+            516,
+            655,
+            911,
+            696
+        ],
+        "page_idx": 11
+    },
+    {
+        "type": "text",
+        "text": "Lemma 5 (Variance of Client Sampling). Let  $\\{z_k^t\\}_{k=1}^K$  be the set of client sketches at round  $t$ . If a subset  $S^t$  of size  $S$  is sampled uniformly at random without replacement, then the variance of the sample mean is bounded by:",
+        "bbox": [
+            516,
+            703,
+            913,
+            761
+        ],
+        "page_idx": 11
+    },
+    {
+        "type": "equation",
+        "text": "\n$$\n\\begin{array}{l} \\mathbb {E} _ {\\mathcal {S} ^ {t}} \\left[ \\left\\| \\frac {1}{S} \\sum_ {k \\in \\mathcal {S} ^ {t}} z _ {k} - \\bar {z} ^ {t} \\right\\| _ {2} ^ {2} \\right] \\\\ \\leq \\frac {K - S}{S K (K - 1)} \\sum_ {k = 1} ^ {K} \\left\\| \\boldsymbol {z} _ {k} - \\bar {\\boldsymbol {z}} ^ {t} \\right\\| _ {2} ^ {2}, \\tag {35} \\\\ \\end{array}\n$$\n",
+        "text_format": "latex",
+        "bbox": [
+            604,
+            763,
+            911,
+            854
+        ],
+        "page_idx": 11
+    },
+    {
+        "type": "text",
+        "text": "where  $\\bar{z}^t \\triangleq \\frac{1}{K}\\sum_{k=1}^{K} z_k^t$  is the true mean of all client sketches.",
+        "bbox": [
+            516,
+            858,
+            911,
+            888
+        ],
+        "page_idx": 11
+    },
+    {
+        "type": "text",
+        "text": "Proof. This is a standard result from sampling theory. For completeness, we provide a sketch of the proof. Let  $\\alpha_{k} = z_{k}^{t} - \\bar{z}^{t}$ . Note that  $\\sum_{k=1}^{K} \\alpha_{k} = 0$ . The left-hand side becomes  $\\mathbb{E}[\\| \\frac{1}{S} \\sum_{k \\in S^{t}} \\alpha_{k} \\|^{2}]$ . We expand the squared norm:",
+        "bbox": [
+            83,
+            68,
+            478,
+            131
+        ],
+        "page_idx": 12
+    },
+    {
+        "type": "equation",
+        "text": "\n$$\n\\begin{array}{l} \\mathbb {E} \\left[ \\left\\| \\frac {1}{S} \\sum_ {k \\in \\mathcal {S} ^ {t}} \\boldsymbol {\\alpha} _ {k} \\right\\| _ {2} ^ {2} \\right] \\\\ = \\frac {1}{S ^ {2}} \\mathbb {E} \\left[ \\sum_ {k \\in \\mathcal {S} ^ {t}} \\| \\boldsymbol {\\alpha} _ {k} \\| _ {2} ^ {2} + \\sum_ {i, j \\in \\mathcal {S} ^ {t}, i \\neq j} \\langle \\boldsymbol {\\alpha} _ {i}, \\boldsymbol {\\alpha} _ {j} \\rangle \\right] \\\\ = \\frac {1}{S ^ {2}} \\left(\\sum_ {k = 1} ^ {K} p _ {k \\in \\mathcal {S} ^ {t}} \\| \\boldsymbol {\\alpha} _ {k} \\| _ {2} ^ {2} + \\sum_ {i \\neq j} p _ {i, j \\in \\mathcal {S} ^ {t}} \\langle \\boldsymbol {\\alpha} _ {i}, \\boldsymbol {\\alpha} _ {j} \\rangle\\right) \\\\ = \\frac {1}{S ^ {2}} \\left(\\frac {S}{K} \\sum_ {k = 1} ^ {K} \\| \\boldsymbol {\\alpha} _ {k} \\| _ {2} ^ {2} + \\frac {S (S - 1)}{K (K - 1)} \\sum_ {i \\neq j} \\langle \\boldsymbol {\\alpha} _ {i}, \\boldsymbol {\\alpha} _ {j} \\rangle\\right). \\tag {36} \\\\ \\end{array}\n$$\n",
+        "text_format": "latex",
+        "bbox": [
+            104,
+            140,
+            477,
+            351
+        ],
+        "page_idx": 12
+    },
+    {
+        "type": "text",
+        "text": "Using the property  $\\sum_{i\\neq j}\\langle \\pmb {\\alpha}_i,\\pmb {\\alpha}_j\\rangle = -\\sum_{k = 1}^{K}\\| \\pmb {\\alpha}_k\\| _2^2$  , we substitute and simplify:",
+        "bbox": [
+            83,
+            363,
+            478,
+            396
+        ],
+        "page_idx": 12
+    },
+    {
+        "type": "equation",
+        "text": "\n$$\n\\begin{array}{l} = \\frac {1}{S ^ {2}} \\left(\\frac {S}{K} - \\frac {S (S - 1)}{K (K - 1)}\\right) \\sum_ {k = 1} ^ {K} \\| \\boldsymbol {\\alpha} _ {k} \\| _ {2} ^ {2} \\\\ = \\frac {K - S}{S \\cdot K (K - 1)} \\sum_ {k = 1} ^ {K} \\| \\boldsymbol {\\alpha} _ {k} \\| _ {2} ^ {2}, \\tag {37} \\\\ \\end{array}\n$$\n",
+        "text_format": "latex",
+        "bbox": [
+            156,
+            406,
+            477,
+            489
+        ],
+        "page_idx": 12
+    },
+    {
+        "type": "text",
+        "text": "which is equivalent to the stated result.",
+        "bbox": [
+            83,
+            498,
+            339,
+            512
+        ],
+        "page_idx": 12
+    },
+    {
+        "type": "image",
+        "img_path": "images/118fa6311a61175c6d6895a84dde3abe9a5fa3a06e58dca4f96840df4613456f.jpg",
+        "image_caption": [],
+        "image_footnote": [],
+        "bbox": [
+            462,
+            500,
+            477,
+            508
+        ],
+        "page_idx": 12
+    },
+    {
+        "type": "text",
+        "text": "We now establish two key lemmas regarding the server and client updates before presenting the main convergence theorem.",
+        "bbox": [
+            83,
+            525,
+            478,
+            566
+        ],
+        "page_idx": 12
+    },
+    {
+        "type": "text",
+        "text": "Lemma 6 (Optimal Server Aggregation). For any set of client sign vectors  $\\{z_k\\}_{k \\in S^t} \\subset \\{\\pm 1\\}^m$ , the server update rule",
+        "bbox": [
+            83,
+            573,
+            480,
+            614
+        ],
+        "page_idx": 12
+    },
+    {
+        "type": "equation",
+        "text": "\n$$\n\\boldsymbol {v} = \\operatorname {s i g n} \\left(\\sum_ {k \\in S ^ {t}} p _ {k} \\boldsymbol {z} _ {k}\\right) \\tag {38}\n$$\n",
+        "text_format": "latex",
+        "bbox": [
+            200,
+            614,
+            477,
+            654
+        ],
+        "page_idx": 12
+    },
+    {
+        "type": "text",
+        "text": "is the exact minimizer of the server's objective  $\\min_{\\pmb{v} \\in \\{\\pm 1\\}^m} \\sum_{k \\in S^t} p_k g(\\pmb{v}, \\pmb{z}_k)$ .",
+        "bbox": [
+            83,
+            660,
+            478,
+            691
+        ],
+        "page_idx": 12
+    },
+    {
+        "type": "text",
+        "text": "Proof. Let  $\\pmb{z}_k = \\mathrm{sign}(\\Phi \\pmb{w}_k^{t + 1})$ . Since both  $\\pmb{v}$  and  $\\pmb{z}_k$  are in  $\\{\\pm 1\\}^m$ , we can write  $g(\\pmb{v}, \\pmb{z}_k) = \\frac{1}{2} (\\| \\pmb{z}_k \\|_1 - \\langle \\pmb{v}, \\pmb{z}_k \\rangle)$ , where  $m$  is the dimension of  $\\pmb{z}_k$ . The objective becomes:",
+        "bbox": [
+            83,
+            703,
+            478,
+            750
+        ],
+        "page_idx": 12
+    },
+    {
+        "type": "equation",
+        "text": "\n$$\n\\begin{array}{l} \\min  _ {\\boldsymbol {v} \\in \\{\\pm 1 \\} ^ {m}} \\sum_ {k \\in \\mathcal {S} ^ {t}} p _ {k} g (\\boldsymbol {v}, \\boldsymbol {z} _ {k}) \\\\ = \\min  _ {\\boldsymbol {v} \\in \\{\\pm 1 \\} ^ {m}} \\sum_ {k \\in \\mathcal {S} ^ {t}} \\frac {p _ {k}}{2} \\left(\\| \\boldsymbol {z} _ {k} \\| _ {1} - \\langle \\boldsymbol {v}, \\boldsymbol {z} _ {k} \\rangle\\right) \\\\ = \\min  _ {\\boldsymbol {v} \\in \\{\\pm 1 \\} ^ {m}} \\left(\\frac {1}{2} \\sum_ {k \\in S ^ {t}} p _ {k} \\| \\boldsymbol {z} _ {k} \\| _ {1} - \\frac {1}{2} \\sum_ {k \\in S ^ {t}} p _ {k} \\langle \\boldsymbol {v}, \\boldsymbol {z} _ {k} \\rangle\\right). \\tag {39} \\\\ \\end{array}\n$$\n",
+        "text_format": "latex",
+        "bbox": [
+            109,
+            758,
+            477,
+            883
+        ],
+        "page_idx": 12
+    },
+    {
+        "type": "text",
+        "text": "Since the first term is constant with respect to  $\\pmb{v}$ , and  $\\| z_k\\| _1 = m$ , the problem is equivalent to:",
+        "bbox": [
+            517,
+            69,
+            911,
+            98
+        ],
+        "page_idx": 12
+    },
+    {
+        "type": "equation",
+        "text": "\n$$\n\\max  _ {\\boldsymbol {v} \\in \\{\\pm 1 \\} ^ {m}} \\sum_ {k \\in \\mathcal {S} ^ {t}} p _ {k} \\langle \\boldsymbol {v}, \\boldsymbol {z} _ {k} \\rangle = \\max  _ {\\boldsymbol {v} \\in \\{\\pm 1 \\} ^ {m}} \\left\\langle \\boldsymbol {v}, \\sum_ {k \\in \\mathcal {S} ^ {t}} p _ {k} \\boldsymbol {z} _ {k} \\right\\rangle . \\tag {40}\n$$\n",
+        "text_format": "latex",
+        "bbox": [
+            534,
+            102,
+            911,
+            155
+        ],
+        "page_idx": 12
+    },
+    {
+        "type": "text",
+        "text": "This is a dot product between a variable vector  $\\pmb{v}$  and a fixed vector  $\\bar{\\pmb{z}} = \\sum_{k\\in S^t}p_k\\pmb{z}_k$ . To maximize the dot product under the constraint that each component  $v_{j}\\in \\{\\pm 1\\}$ , we must choose  $v_{j}$  to have the same sign as the corresponding component  $\\bar{z}_j$ . Therefore, the optimal solution is:",
+        "bbox": [
+            514,
+            155,
+            913,
+            227
+        ],
+        "page_idx": 12
+    },
+    {
+        "type": "equation",
+        "text": "\n$$\n\\boldsymbol {v} = \\operatorname {s i g n} (\\bar {z}) = \\operatorname {s i g n} \\left(\\sum_ {k \\in \\mathcal {S} ^ {t}} p _ {k} z _ {k}\\right). \\tag {41}\n$$\n",
+        "text_format": "latex",
+        "bbox": [
+            596,
+            231,
+            911,
+            273
+        ],
+        "page_idx": 12
+    },
+    {
+        "type": "image",
+        "img_path": "images/ede91789f3f4f46461263db99a3a4fd7bb9cec3fbd1b59391730d9a1b84ce91f.jpg",
+        "image_caption": [],
+        "image_footnote": [],
+        "bbox": [
+            895,
+            277,
+            911,
+            289
+        ],
+        "page_idx": 12
+    },
+    {
+        "type": "text",
+        "text": "Lemma 7 (Client-Side Objective Descent). After  $R$  local steps of subgradient descent with learning rate  $\\eta$  on the smoothed objective  $\\tilde{F}_k(\\cdot; \\mathbf{v}^t)$ , starting from  $\\mathbf{w}_{k,0}^{t+1} = \\mathbf{w}_k^t$ , we have",
+        "bbox": [
+            514,
+            297,
+            913,
+            357
+        ],
+        "page_idx": 12
+    },
+    {
+        "type": "equation",
+        "text": "\n$$\n\\begin{array}{l} \\mathbb {E} \\left[ \\tilde {F} _ {k} \\left(\\boldsymbol {w} _ {k, R} ^ {t + 1}; \\boldsymbol {v} ^ {t}\\right) \\right] \\leq \\tilde {F} _ {k} \\left(\\boldsymbol {w} _ {k} ^ {t}; \\boldsymbol {v} ^ {t}\\right) + \\frac {\\eta^ {2} R L _ {F} \\sigma^ {2}}{2} \\\\ - \\eta R \\left(1 - \\frac {\\eta L _ {F}}{2}\\right) \\cdot \\frac {1}{R} \\sum_ {r = 0} ^ {R - 1} \\left\\| \\nabla \\tilde {F} _ {k} \\left(\\boldsymbol {w} _ {k, r} ^ {t + 1}; \\boldsymbol {v} ^ {t}\\right) \\right\\| ^ {2}. \\tag {42} \\\\ \\end{array}\n$$\n",
+        "text_format": "latex",
+        "bbox": [
+            526,
+            359,
+            911,
+            434
+        ],
+        "page_idx": 12
+    },
+    {
+        "type": "text",
+        "text": "Proof. This follows from the standard analysis of SGD on an  $L_{F}$ -smooth function. By smoothness, we have:",
+        "bbox": [
+            516,
+            436,
+            911,
+            465
+        ],
+        "page_idx": 12
+    },
+    {
+        "type": "equation",
+        "text": "\n$$\n\\begin{array}{l} \\tilde {F} _ {k} \\left(\\boldsymbol {w} _ {k, r + 1} ^ {t + 1}\\right) \\leq \\tilde {F} _ {k} \\left(\\boldsymbol {w} _ {k, r} ^ {t + 1}\\right) \\\\ + \\langle \\nabla \\tilde {F} _ {k} (\\boldsymbol {w} _ {k, r} ^ {t + 1}), \\boldsymbol {w} _ {k, r + 1} ^ {t + 1} - \\boldsymbol {w} _ {k, r} ^ {t + 1} \\rangle \\\\ + \\frac {L _ {F}}{2} \\| \\boldsymbol {w} _ {k, r + 1} ^ {t + 1} - \\boldsymbol {w} _ {k, r} ^ {t + 1} \\| ^ {2} \\\\ = \\tilde {F} _ {k} \\left(\\boldsymbol {w} _ {k, r} ^ {t + 1}\\right) - \\eta \\langle \\nabla \\tilde {F} _ {k} \\left(\\boldsymbol {w} _ {k, r} ^ {t + 1}\\right), \\boldsymbol {d} _ {k, r} \\rangle \\\\ + \\frac {\\eta^ {2} L _ {F}}{2} \\| \\boldsymbol {d} _ {k, r} \\| ^ {2}, \\tag {43} \\\\ \\end{array}\n$$\n",
+        "text_format": "latex",
+        "bbox": [
+            553,
+            470,
+            911,
+            597
+        ],
+        "page_idx": 12
+    },
+    {
+        "type": "text",
+        "text": "where  $\\pmb{d}_{k,r} = \\nabla \\hat{f}_k(\\pmb{w}_{k,r}^{t+1};\\mathcal{B}_{k,r}) + \\lambda \\nabla \\tilde{g}_\\gamma(\\pmb{v}^t,\\pmb{w}_{k,r}^{t+1}) + \\mu \\pmb{w}_{k,r}^{t+1}$  is the stochastic gradient. Using Assumption 3,  $\\mathbb{E}[\\| \\pmb{d}_{k,r}\\|^2] \\leq \\| \\nabla \\tilde{F}_k\\|^2 + \\sigma^2$ . Substituting this in gives:",
+        "bbox": [
+            516,
+            602,
+            911,
+            656
+        ],
+        "page_idx": 12
+    },
+    {
+        "type": "equation",
+        "text": "\n$$\n\\begin{array}{l} \\mathbb {E} \\left[ \\tilde {F} _ {k} \\left(\\boldsymbol {w} _ {k, r + 1} ^ {t + 1}\\right) \\right] \\leq \\tilde {F} _ {k} \\left(\\boldsymbol {w} _ {k, r} ^ {t + 1}\\right) - \\eta \\| \\nabla \\tilde {F} _ {k} \\left(\\boldsymbol {w} _ {k, r} ^ {t + 1}\\right) \\| ^ {2} \\\\ + \\frac {\\eta^ {2} L _ {F}}{2} \\mathbb {E} [ \\| \\boldsymbol {d} _ {k, r} \\| ^ {2} ] \\\\ \\leq \\tilde {F} _ {k} \\left(\\boldsymbol {w} _ {k, r} ^ {t + 1}\\right) - \\eta \\| \\nabla \\tilde {F} _ {k} \\left(\\boldsymbol {w} _ {k, r} ^ {t + 1}\\right) \\| ^ {2} \\\\ + \\frac {\\eta^ {2} L _ {F}}{2} \\left(\\| \\nabla \\tilde {F} _ {k} \\left(\\boldsymbol {w} _ {k, r} ^ {t + 1}\\right) \\| ^ {2} + \\sigma^ {2}\\right) \\\\ = \\tilde {F} _ {k} \\left(\\boldsymbol {w} _ {k, r} ^ {t + 1}\\right) \\\\ - \\eta \\left(1 - \\frac {\\eta L _ {F}}{2}\\right) \\| \\nabla \\tilde {F} _ {k} \\left(\\boldsymbol {w} _ {k, r} ^ {t + 1}\\right) \\| ^ {2} \\\\ + \\frac {\\eta^ {2} L _ {F} \\sigma^ {2}}{2}. \\tag {44} \\\\ \\end{array}\n$$\n",
+        "text_format": "latex",
+        "bbox": [
+            553,
+            660,
+            911,
+            857
+        ],
+        "page_idx": 12
+    },
+    {
+        "type": "text",
+        "text": "Telescoping this inequality over  $r = 0, \\dots, R - 1$  and taking the total expectation yields the desired result.",
+        "bbox": [
+            516,
+            859,
+            911,
+            888
+        ],
+        "page_idx": 12
+    },
+    {
+        "type": "text",
+        "text": "B.3. Main Convergence Proof (Theorem 1). We now present our main convergence result by analyzing the evolution of a carefully chosen Lyapunov function. In our personalized federated setting, a single global model does not exist. Instead, our goal is to show that the distributed optimization process is stable and converges to a meaningful equilibrium. To this end, we analyze the evolution of a global smoothed potential function",
+        "bbox": [
+            81,
+            68,
+            478,
+            181
+        ],
+        "page_idx": 13
+    },
+    {
+        "type": "equation",
+        "text": "\n$$\n\\Psi^ {t} = \\sum_ {k = 1} ^ {K} p _ {k} \\tilde {F} _ {k} \\left(\\boldsymbol {w} _ {k} ^ {t}; \\boldsymbol {v} ^ {t}\\right). \\tag {45}\n$$\n",
+        "text_format": "latex",
+        "bbox": [
+            197,
+            189,
+            478,
+            231
+        ],
+        "page_idx": 13
+    },
+    {
+        "type": "text",
+        "text": "This function tracks the state of the entire distributed system, encompassing all personalized models  $\\boldsymbol{w}_k^t$  and the server's consensus vector  $\\boldsymbol{v}^t$ .",
+        "bbox": [
+            81,
+            241,
+            478,
+            282
+        ],
+        "page_idx": 13
+    },
+    {
+        "type": "text",
+        "text": "Theorem 1 (Convergence to a Stationary Neighborhood). Let assumptions 1-4 hold. For a learning rate  $\\eta \\leq \\frac{1}{L_F}$ , after  $T$  rounds of Algorithm 1 where  $S$  out of  $K$  clients are sampled each round, we have",
+        "bbox": [
+            81,
+            289,
+            480,
+            348
+        ],
+        "page_idx": 13
+    },
+    {
+        "type": "equation",
+        "text": "\n$$\n\\begin{array}{l} \\frac {1}{T} \\sum_ {t = 0} ^ {T - 1} \\frac {1}{R} \\sum_ {r = 0} ^ {R - 1} \\mathbb {E} \\left[ \\sum_ {k = 1} ^ {K} p _ {k} \\| \\nabla \\tilde {F} _ {k} (\\boldsymbol {w} _ {k, r} ^ {t + 1}; \\boldsymbol {v} ^ {t}) \\| _ {2} ^ {2} \\right] \\\\ \\leq \\frac {\\Psi^ {0} - F ^ {*}}{c _ {1} T} + \\frac {\\eta^ {2} R L _ {F} \\sigma^ {2}}{2 c _ {1}} + \\frac {\\Delta_ {\\operatorname* {m a x}}}{c _ {1}} + \\frac {\\lambda E _ {S}}{c _ {1}} \\tag {46} \\\\ \\end{array}\n$$\n",
+        "text_format": "latex",
+        "bbox": [
+            117,
+            356,
+            478,
+            435
+        ],
+        "page_idx": 13
+    },
+    {
+        "type": "text",
+        "text": "with high probability, where  $c_{1} = \\eta R(1 - \\eta L_{F} / 2)$ . The error terms are defined as follows:",
+        "bbox": [
+            81,
+            441,
+            478,
+            470
+        ],
+        "page_idx": 13
+    },
+    {
+        "type": "list",
+        "sub_type": "text",
+        "list_items": [
+            "-  $\\Delta_{\\max} = 2\\lambda (\\sqrt{m} C_{\\Phi}W + m)$  bounds the error from one-bit quantization.",
+            "-  $E_{S}$  bounds the error from client sampling and is given by:"
+        ],
+        "bbox": [
+            89,
+            477,
+            478,
+            537
+        ],
+        "page_idx": 13
+    },
+    {
+        "type": "equation",
+        "text": "\n$$\n\\begin{array}{l} E _ {S} = \\\\ \\left(\\frac {1}{T} \\sum_ {t = 0} ^ {T - 1} 2 \\sqrt {m} \\sqrt {\\frac {K - S}{S K (K - 1)} \\sum_ {k = 1} ^ {K} \\left\\| z _ {k} ^ {t + 1} - \\bar {z} ^ {t + 1} \\right\\| _ {2} ^ {2}}\\right). \\tag {47} \\\\ \\end{array}\n$$\n",
+        "text_format": "latex",
+        "bbox": [
+            109,
+            547,
+            478,
+            630
+        ],
+        "page_idx": 13
+    },
+    {
+        "type": "text",
+        "text": "Remark 4. Note that the client sampling error  $E_{S}$  vanishes when  $S = K$  (full client participation). In this case, our convergence bound recovers the result for the full participation setting.",
+        "bbox": [
+            81,
+            640,
+            480,
+            696
+        ],
+        "page_idx": 13
+    },
+    {
+        "type": "text",
+        "text": "Proof. We analyze the one-round change in the potential function,  $\\Psi^{t + 1} - \\Psi^t$ . We decompose this change as:",
+        "bbox": [
+            83,
+            712,
+            478,
+            742
+        ],
+        "page_idx": 13
+    },
+    {
+        "type": "equation",
+        "text": "\n$$\n\\begin{array}{l} \\mathbb {E} [ \\Psi^ {t + 1} - \\Psi^ {t} ] \\\\ = \\mathbb {E} \\left[ \\underbrace {\\sum_ {k} p _ {k} \\left(\\tilde {F} _ {k} \\left(\\boldsymbol {w} _ {k} ^ {t + 1} ; \\boldsymbol {v} ^ {t + 1}\\right) - \\tilde {F} _ {k} \\left(\\boldsymbol {w} _ {k} ^ {t + 1} ; \\boldsymbol {v} ^ {t}\\right)\\right)} _ {=: \\Gamma_ {1}} \\right] \\\\ + \\mathbb {E} \\left[ \\underbrace {\\sum_ {k} p _ {k} \\left(\\tilde {F} _ {k} \\left(\\boldsymbol {w} _ {k} ^ {t + 1} ; \\boldsymbol {v} ^ {t}\\right) - \\tilde {F} _ {k} \\left(\\boldsymbol {w} _ {k} ^ {t} ; \\boldsymbol {v} ^ {t}\\right)\\right)} _ {=: \\Gamma_ {2}} \\right]. \\tag {48} \\\\ \\end{array}\n$$\n",
+        "text_format": "latex",
+        "bbox": [
+            114,
+            748,
+            478,
+            886
+        ],
+        "page_idx": 13
+    },
+    {
+        "type": "text",
+        "text": "(1) Bounding the Client Progress. From Lemma 7, after taking expectations and weighting by  $p_k$ , the client progress is bounded by:",
+        "bbox": [
+            514,
+            68,
+            913,
+            112
+        ],
+        "page_idx": 13
+    },
+    {
+        "type": "equation",
+        "text": "\n$$\n\\begin{array}{l} \\mathbb {E} \\left[ \\Gamma_ {2} \\right] = \\mathbb {E} \\left[ \\sum_ {k} p _ {k} \\left(\\tilde {F} _ {k} \\left(\\boldsymbol {w} _ {k} ^ {t + 1}; \\boldsymbol {v} ^ {t}\\right) - \\tilde {F} _ {k} \\left(\\boldsymbol {w} _ {k} ^ {t}; \\boldsymbol {v} ^ {t}\\right)\\right) \\right] \\\\ \\leq - c _ {1} \\sum_ {k} p _ {k} \\left(\\frac {1}{R} \\sum_ {r = 0} ^ {R - 1} \\| \\nabla \\tilde {F} _ {k} \\left(\\boldsymbol {w} _ {k, r} ^ {t + 1}; \\boldsymbol {v} ^ {t}\\right) \\| ^ {2}\\right) \\\\ + \\frac {\\eta^ {2} R L _ {F} \\sigma^ {2}}{2}, \\tag {49} \\\\ \\end{array}\n$$\n",
+        "text_format": "latex",
+        "bbox": [
+            540,
+            118,
+            911,
+            237
+        ],
+        "page_idx": 13
+    },
+    {
+        "type": "text",
+        "text": "where  $c_{1} = \\eta R(1 - \\frac{\\eta L_{F}}{2})$",
+        "bbox": [
+            516,
+            244,
+            696,
+            263
+        ],
+        "page_idx": 13
+    },
+    {
+        "type": "text",
+        "text": "(2) Bounding the Server Progress. The server progress term reflects the change in the potential function due solely to the server updating its vector from  $\\pmb{v}^t$  to  $\\pmb{v}^{t + 1}$ . Based on the definition of  $\\tilde{F}_k$ , we define:",
+        "bbox": [
+            514,
+            262,
+            913,
+            319
+        ],
+        "page_idx": 13
+    },
+    {
+        "type": "equation",
+        "text": "\n$$\n\\begin{array}{l} \\mathbb {E} \\left[ \\Gamma_ {1} \\right] = \\mathbb {E} \\left[ \\sum_ {k} p _ {k} \\left(\\tilde {F} _ {k} \\left(\\boldsymbol {w} _ {k} ^ {t + 1}; \\boldsymbol {v} ^ {t + 1}\\right) - \\tilde {F} _ {k} \\left(\\boldsymbol {w} _ {k} ^ {t + 1}; \\boldsymbol {v} ^ {t}\\right)\\right) \\right] \\\\ = \\lambda \\mathbb {E} \\left[ \\sum_ {k} p _ {k} \\left(\\langle \\boldsymbol {v} ^ {t}, \\boldsymbol {\\Phi} \\boldsymbol {w} _ {k} ^ {t + 1} \\rangle - \\langle \\boldsymbol {v} ^ {t + 1}, \\boldsymbol {\\Phi} \\boldsymbol {w} _ {k} ^ {t + 1} \\rangle\\right) \\right] \\\\ = \\lambda \\mathbb {E} \\left[ \\left\\langle \\boldsymbol {v} ^ {t} - \\boldsymbol {v} ^ {t + 1}, \\sum_ {k} p _ {k} \\boldsymbol {\\Phi} \\boldsymbol {w} _ {k} ^ {t + 1} \\right\\rangle \\right]. \\tag {50} \\\\ \\end{array}\n$$\n",
+        "text_format": "latex",
+        "bbox": [
+            524,
+            325,
+            911,
+            430
+        ],
+        "page_idx": 13
+    },
+    {
+        "type": "text",
+        "text": "Here, we must acknowledge the mismatch:  $\\tilde{F}_k$  uses  $\\Phi \\pmb{w}$  but the server update rule  $\\pmb{v}^{t + 1}$  uses  $\\mathrm{sign}(\\Phi \\pmb {w})$ . We bridge this gap by introducing the quantization error  $\\delta_k^{t + 1} = \\Phi \\pmb{w}_k^{t + 1} - \\mathrm{sign}(\\Phi \\pmb{w}^{t + 1})$ . Let  $\\pmb{z}_k^{t + 1} = \\mathrm{sign}(\\Phi \\pmb{w}_k^{t + 1})$  and  $\\delta_k^{t + 1}$  be the quantization error. Let  $\\hat{\\pmb{z}}^{t + 1} = \\sum_{k\\in \\mathcal{S}^t}p_k\\pmb{z}_k^{t + 1}$  be the sampled aggregate and  $\\bar{z}^{t + 1} = \\sum_{k = 1}^{K}p_{k}\\pmb{z}_{k}^{t + 1}$  be the ideal aggregate. The server update is  $\\pmb{v}^{t + 1} = \\mathrm{sign}(\\hat{\\pmb{z}}^{t + 1})$ . We decompose the inner product by introducing the sampled aggregate  $\\hat{\\pmb{z}}^{t + 1}$  and the quantization error:",
+        "bbox": [
+            514,
+            440,
+            913,
+            580
+        ],
+        "page_idx": 13
+    },
+    {
+        "type": "equation",
+        "text": "\n$$\n\\begin{array}{l} \\mathbb {E} \\left[ \\Gamma_ {1} \\right] / \\lambda = \\mathbb {E} \\left[ \\left\\langle \\boldsymbol {v} ^ {t} - \\boldsymbol {v} ^ {t + 1}, \\sum_ {k = 1} ^ {K} p _ {k} \\boldsymbol {z} _ {k} ^ {t + 1} + \\sum_ {k = 1} ^ {K} p _ {k} \\boldsymbol {\\delta} _ {k} ^ {t + 1} \\right\\rangle \\right] \\\\ = \\mathbb {E} [ \\underbrace {\\left\\langle \\boldsymbol {v} ^ {t} - \\boldsymbol {v} ^ {t + 1} , \\hat {\\boldsymbol {z}} ^ {t + 1} \\right\\rangle} _ {=: \\Theta_ {1}} ] \\\\ + \\mathbb {E} [ \\underbrace {\\left\\langle \\boldsymbol {v} ^ {t} - \\boldsymbol {v} ^ {t + 1} , \\bar {\\boldsymbol {z}} ^ {t + 1} - \\hat {\\boldsymbol {z}} ^ {t + 1} \\right\\rangle} _ {=: \\Theta_ {2}} ] \\\\ + \\mathbb {E} \\left[ \\underbrace {\\left\\langle \\boldsymbol {v} ^ {t} - \\boldsymbol {v} ^ {t + 1} , \\sum_ {k = 1} ^ {K} p _ {k} \\boldsymbol {\\delta} _ {k} ^ {t + 1} \\right\\rangle} _ {=: \\Theta_ {3}} \\right]. \\tag {51} \\\\ \\end{array}\n$$\n",
+        "text_format": "latex",
+        "bbox": [
+            521,
+            585,
+            911,
+            772
+        ],
+        "page_idx": 13
+    },
+    {
+        "type": "text",
+        "text": "Now we bound each term:",
+        "bbox": [
+            532,
+            780,
+            710,
+            794
+        ],
+        "page_idx": 13
+    },
+    {
+        "type": "list",
+        "sub_type": "text",
+        "list_items": [
+            "- Term  $\\Theta_{1}$ : From Lemma 6, we know  $\\pmb{v}^{t + 1}$  is the optimal solution for the objective based on the sampled sketches  $\\hat{\\pmb{z}}^{t + 1}$ . This means  $\\langle \\pmb{v}^{t + 1},\\hat{\\pmb{z}}^{t + 1}\\rangle \\geq \\langle \\pmb{v}^t,\\hat{\\pmb{z}}^{t + 1}\\rangle$ . Therefore, Term A is non-positive:  $\\mathbb{E}[\\Theta_1]\\leq 0$",
+            "- Term  $\\Theta_{2}$ : We use the Cauchy-Schwarz inequality, the fact that  $\\| \\pmb{v}^t - \\pmb{v}^{t + 1}\\|_2 \\leq 2\\sqrt{m}$ , and our Lemma 5. For"
+        ],
+        "bbox": [
+            524,
+            803,
+            913,
+            888
+        ],
+        "page_idx": 13
+    },
+    {
+        "type": "text",
+        "text": "simplicity, assuming  $p_k = 1 / K$ :",
+        "bbox": [
+            104,
+            68,
+            321,
+            84
+        ],
+        "page_idx": 14
+    },
+    {
+        "type": "equation",
+        "text": "\n$$\n\\begin{array}{l} \\mathbb {E} [ \\Theta_ {2} ] \\leq \\mathbb {E} [ \\| \\boldsymbol {v} ^ {t} - \\boldsymbol {v} ^ {t + 1} \\| _ {2} \\cdot \\| \\bar {\\boldsymbol {z}} ^ {t + 1} - \\hat {\\boldsymbol {z}} ^ {t + 1} \\| _ {2} ] \\\\ \\leq 2 \\sqrt {m} \\sqrt {\\mathbb {E} [ \\| \\bar {z} ^ {t + 1} - \\hat {z} ^ {t + 1} \\| _ {2} ^ {2} ]} \\\\ \\leq 2 \\sqrt {m} \\sqrt {\\frac {K - S}{S K (K - 1)} \\sum_ {k = 1} ^ {K} \\left\\| z _ {k} ^ {t + 1} - \\bar {z} ^ {t + 1} \\right\\| _ {2} ^ {2}}. \\tag {52} \\\\ \\end{array}\n$$\n",
+        "text_format": "latex",
+        "bbox": [
+            120,
+            93,
+            477,
+            204
+        ],
+        "page_idx": 14
+    },
+    {
+        "type": "text",
+        "text": "Since  $\\| z_k\\| _2^2 = m$ , the term  $\\| z_{k} - \\bar{z}\\|^{2}$  is bounded.",
+        "bbox": [
+            102,
+            214,
+            441,
+            229
+        ],
+        "page_idx": 14
+    },
+    {
+        "type": "text",
+        "text": "- Term  $\\Theta_3$ : Since the entries of  $v^t$  and  $v^{t+1}$  are  $\\pm 1$ , the entries of their difference are in  $\\{-2,0,2\\}$ . This gives:",
+        "bbox": [
+            91,
+            231,
+            478,
+            261
+        ],
+        "page_idx": 14
+    },
+    {
+        "type": "equation",
+        "text": "\n$$\n\\begin{array}{l} \\mathbb {E} \\left[ \\Theta_ {3} \\right] \\leq \\mathbb {E} \\left[ \\| \\boldsymbol {v} ^ {t} - \\boldsymbol {v} ^ {t + 1} \\| _ {\\infty} \\left\\| \\sum_ {k} p _ {k} \\delta_ {k} ^ {t + 1} \\right\\| _ {1} \\right] \\\\ \\leq 2 \\cdot \\mathbb {E} \\left[ \\left\\| \\sum_ {k} p _ {k} \\boldsymbol {\\delta} _ {k} ^ {t + 1} \\right\\| _ {1} \\right] \\\\ (s i n c e \\| \\boldsymbol {v} ^ {t} - \\boldsymbol {v} ^ {t + 1} \\| _ {\\infty} \\leq 2) \\\\ \\leq 2 \\sum_ {k} p _ {k} \\mathbb {E} \\left[ \\| \\boldsymbol {\\delta} _ {k} ^ {t + 1} \\| _ {1} \\right]. \\tag {53} \\\\ \\end{array}\n$$\n",
+        "text_format": "latex",
+        "bbox": [
+            145,
+            271,
+            477,
+            410
+        ],
+        "page_idx": 14
+    },
+    {
+        "type": "text",
+        "text": "As established in Lemma 4, the expected squared norm of the weights  $\\mathbb{E}[\\| \\pmb{w}_k^{t + 1}\\| _2^2 ]$  is uniformly bounded by a constant  $W^2$ . This allows us to bound the expected quantization error for each client:",
+        "bbox": [
+            102,
+            420,
+            478,
+            476
+        ],
+        "page_idx": 14
+    },
+    {
+        "type": "equation",
+        "text": "\n$$\n\\begin{array}{l} \\mathbb {E} [ \\| \\boldsymbol {\\delta} _ {k} ^ {t + 1} \\| _ {1} ] = \\mathbb {E} [ \\| \\boldsymbol {\\Phi} \\boldsymbol {w} _ {k} ^ {t + 1} - \\operatorname {s i g n} (\\boldsymbol {\\Phi} \\boldsymbol {w} _ {k} ^ {t + 1}) \\| _ {1} ] \\\\ \\leq \\mathbb {E} [ \\| \\boldsymbol {\\Phi} \\boldsymbol {w} _ {k} ^ {t + 1} \\| _ {1} ] + m \\\\ \\leq \\sqrt {m} \\mathbb {E} [ \\| \\boldsymbol {\\Phi} \\boldsymbol {w} _ {k} ^ {t + 1} \\| _ {2} ] + m \\\\ \\leq \\sqrt {m} \\sqrt {\\mathbb {E} [ \\| \\boldsymbol {\\Phi} \\boldsymbol {w} _ {k} ^ {t + 1} \\| _ {2} ^ {2} ]} + m \\\\ \\leq \\sqrt {m} \\sqrt {C _ {\\Phi} ^ {2} \\mathbb {E} [ \\| \\boldsymbol {w} _ {k} ^ {t + 1} \\| _ {2} ^ {2} ]} + m \\\\ \\leq \\sqrt {m} C _ {\\Phi} W + m. \\tag {54} \\\\ \\end{array}\n$$\n",
+        "text_format": "latex",
+        "bbox": [
+            142,
+            487,
+            475,
+            619
+        ],
+        "page_idx": 14
+    },
+    {
+        "type": "text",
+        "text": "Then we have",
+        "bbox": [
+            104,
+            630,
+            200,
+            643
+        ],
+        "page_idx": 14
+    },
+    {
+        "type": "equation",
+        "text": "\n$$\n\\mathbb {E} \\left[ \\Theta_ {3} \\right] \\leq 2 (\\sqrt {m} C _ {\\Phi} W + m). \\tag {55}\n$$\n",
+        "text_format": "latex",
+        "bbox": [
+            194,
+            654,
+            477,
+            670
+        ],
+        "page_idx": 14
+    },
+    {
+        "type": "text",
+        "text": "We define  $\\Delta_{\\mathrm{max}} \\triangleq 2\\lambda (\\sqrt{m} C_{\\Phi}W + m)$ , so that this term is bounded by  $\\Delta_{\\mathrm{max}} / \\lambda$ .",
+        "bbox": [
+            102,
+            680,
+            477,
+            710
+        ],
+        "page_idx": 14
+    },
+    {
+        "type": "text",
+        "text": "Combining these bounds, the total expected server progress is bounded by:",
+        "bbox": [
+            81,
+            724,
+            478,
+            753
+        ],
+        "page_idx": 14
+    },
+    {
+        "type": "equation",
+        "text": "\n$$\n\\begin{array}{l} \\mathbb {E} [ \\Gamma_ {1} ] \\\\ \\leq 2 \\lambda \\sqrt {m} \\sqrt {\\frac {K - S}{S (K - 1)} \\frac {1}{K} \\sum_ {k = 1} ^ {K} \\left\\| z _ {k} ^ {t + 1} - \\bar {z} ^ {t + 1} \\right\\| _ {2} ^ {2}} \\\\ + 2 \\lambda (\\sqrt {m} C _ {\\Phi} W + m). \\tag {56} \\\\ \\end{array}\n$$\n",
+        "text_format": "latex",
+        "bbox": [
+            125,
+            763,
+            475,
+            849
+        ],
+        "page_idx": 14
+    },
+    {
+        "type": "text",
+        "text": "(3) Combining and Telescoping. Now, combining the bounds for the expected client and server progress, we get",
+        "bbox": [
+            81,
+            859,
+            478,
+            888
+        ],
+        "page_idx": 14
+    },
+    {
+        "type": "text",
+        "text": "the one-round recurrence:",
+        "bbox": [
+            517,
+            69,
+            689,
+            80
+        ],
+        "page_idx": 14
+    },
+    {
+        "type": "equation",
+        "text": "\n$$\n\\begin{array}{l} \\mathbb {E} \\left[ \\Psi^ {t + 1} \\right] \\\\ \\leq \\mathbb {E} [ \\Psi^ {t} ] - c _ {1} \\mathbb {E} \\left[ \\sum_ {k} p _ {k} \\frac {1}{R} \\sum_ {r = 0} ^ {R - 1} \\| \\nabla \\tilde {F} _ {k} (\\boldsymbol {w} _ {k, r} ^ {t + 1}; \\boldsymbol {v} ^ {t}) \\| _ {2} ^ {2} \\right] \\\\ + \\frac {\\eta^ {2} R L _ {F} \\sigma^ {2}}{2} + \\Delta_ {\\max} \\\\ + \\lambda \\left(2 \\sqrt {m} \\sqrt {\\frac {K - S}{S (K - 1)} \\frac {1}{K} \\sum_ {k = 1} ^ {K} \\left\\| z _ {k} ^ {t + 1} - \\bar {z} ^ {t + 1} \\right\\| _ {2} ^ {2}}\\right), \\tag {57} \\\\ \\end{array}\n$$\n",
+        "text_format": "latex",
+        "bbox": [
+            540,
+            90,
+            911,
+            250
+        ],
+        "page_idx": 14
+    },
+    {
+        "type": "text",
+        "text": "where  $c_{1}\\triangleq \\eta R(1 - \\eta L_{F} / 2)$",
+        "bbox": [
+            517,
+            258,
+            712,
+            275
+        ],
+        "page_idx": 14
+    },
+    {
+        "type": "text",
+        "text": "Rearranging and summing over  $t = 0,\\dots ,T - 1$  ..",
+        "bbox": [
+            532,
+            275,
+            867,
+            289
+        ],
+        "page_idx": 14
+    },
+    {
+        "type": "equation",
+        "text": "\n$$\n\\begin{array}{l} \\sum_ {t = 0} ^ {T - 1} c _ {1} \\mathbb {E} \\left[ \\sum_ {k} p _ {k} \\frac {1}{R} \\sum_ {r = 0} ^ {R - 1} \\| \\nabla \\tilde {F} _ {k} (\\boldsymbol {w} _ {k, r} ^ {t + 1}; \\boldsymbol {v} ^ {t}) \\| _ {2} ^ {2} \\right] \\\\ \\leq \\mathbb {E} [ \\Psi^ {0} ] - \\mathbb {E} [ \\Psi^ {T} ] + T \\left(\\frac {\\eta^ {2} R L _ {F} \\sigma^ {2}}{2} + \\Delta_ {\\max }\\right) \\\\ + \\lambda \\sum_ {t = 0} ^ {T - 1} \\left(2 \\sqrt {m} \\sqrt {\\frac {K - S}{S K (K - 1)} \\sum_ {k = 1} ^ {K} \\left\\| z _ {k} ^ {t + 1} - \\bar {z} ^ {t + 1} \\right\\| _ {2} ^ {2}}\\right). \\tag {58} \\\\ \\end{array}\n$$\n",
+        "text_format": "latex",
+        "bbox": [
+            532,
+            297,
+            911,
+            440
+        ],
+        "page_idx": 14
+    },
+    {
+        "type": "text",
+        "text": "Using the fact that  $\\Psi^T \\geq F^*(\\mathrm{Assumption}2)$  and dividing by  $c_1 T$ , we arrive at the final result:",
+        "bbox": [
+            516,
+            449,
+            911,
+            479
+        ],
+        "page_idx": 14
+    },
+    {
+        "type": "equation",
+        "text": "\n$$\n\\begin{array}{l} \\frac {1}{T} \\sum_ {t = 0} ^ {T - 1} \\mathbb {E} \\left[ \\sum_ {k} p _ {k} \\frac {1}{R} \\sum_ {r = 0} ^ {R - 1} \\| \\nabla \\tilde {F} _ {k} \\left(\\boldsymbol {w} _ {k, r} ^ {t + 1}; \\boldsymbol {v} ^ {t}\\right) \\| _ {2} ^ {2} \\right] \\\\ \\leq \\frac {\\Psi^ {0} - F ^ {*}}{c _ {1} T} + \\frac {\\eta^ {2} R L _ {F} \\sigma^ {2}}{2 c _ {1}} + \\frac {\\Delta_ {\\max}}{c _ {1}} \\\\ + \\frac {\\lambda}{c _ {1} T} \\sum_ {t = 0} ^ {T - 1} 2 \\sqrt {m} \\sqrt {\\frac {K - S}{S K (K - 1)} \\sum_ {k = 1} ^ {K} \\left\\| z _ {k} ^ {t + 1} - \\bar {z} ^ {t + 1} \\right\\| _ {2} ^ {2}}, \\tag {59} \\\\ \\end{array}\n$$\n",
+        "text_format": "latex",
+        "bbox": [
+            535,
+            488,
+            911,
+            627
+        ],
+        "page_idx": 14
+    },
+    {
+        "type": "text",
+        "text": "which completes the proof.",
+        "bbox": [
+            517,
+            635,
+            699,
+            650
+        ],
+        "page_idx": 14
+    },
+    {
+        "type": "image",
+        "img_path": "images/0fb742a45710e0bbb29e52e1e82bce1326e19decf578a1bf869311af543fd9ec.jpg",
+        "image_caption": [],
+        "image_footnote": [],
+        "bbox": [
+            895,
+            637,
+            911,
+            648
+        ],
+        "page_idx": 14
+    }
+]

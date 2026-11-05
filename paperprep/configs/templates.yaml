@@ -1,0 +1,134 @@
+# Conference LaTeX template patterns
+# Used to identify which conference a paper was submitted to from its .tex source
+#
+# Patterns are applied to all .tex files in a paper's source bundle.
+# A single match makes us tag the paper with that venue.
+#
+# Loose pattern shape:
+#   \\usepackage(?:\[[^\]]*\])?\s*\{[^}]*\bVENUE_PKG\b
+#
+# [^}]* tolerates:
+#   - path prefix:           \usepackage{styles/VENUE_PKG}
+#   - comma-separated:       \usepackage{VENUE_PKG,times}
+#   - both:                  \usepackage{template/VENUE_PKG,times}
+# The \b word boundary after VENUE_PKG lets trailing `,times` or `_arxiv` suffix
+# be handled via an optional suffix group in the pattern.
+
+templates:
+  # ============================================================================
+  # ML / General AI venues
+  # ============================================================================
+
+  neurips:
+    patterns:
+      # Standard and datasets&benchmarks; tolerates path prefix and comma lists.
+      # Use (?<![a-zA-Z]) instead of \b so `new_neurips_2024`, `open_neurips_2024`
+      # (underscore-prefixed variants) still match.
+      - '\\usepackage(?:\[[^\]]*\])?\s*\{[^}]*(?<![a-zA-Z])(?:neurips|nips)_(?:data_)?\d{4}(?![a-zA-Z0-9])'
+      - '\\documentclass(?:\[[^\]]*\])?\s*\{[^}]*(?<![a-zA-Z])neurips_\d{4}(?![a-zA-Z0-9])'
+    year_regex: '(?:neurips|nips)(?:_data)?_(\d{4})'
+
+  icml:
+    patterns:
+      - '\\usepackage(?:\[[^\]]*\])?\s*\{[^}]*\bicml\d{4}(?:_conference)?(?:_arxiv)?\b'
+      - '\\usepackage(?:\[[^\]]*\])?\s*\{[^}]*\barxiv_icml\b'
+      - '\\usepackage(?:\[[^\]]*\])?\s*\{[^}]*\bheader_icml\d{2,4}\b'
+    year_regex: 'icml_?(\d{2,4})'
+
+  iclr:
+    patterns:
+      - '\\usepackage(?:\[[^\]]*\])?\s*\{[^}]*\biclr\d{4}(?:_conference)?(?:_arxiv)?\b'
+    year_regex: 'iclr(\d{4})'
+
+  colm:
+    patterns:
+      # Allow `colm2024_conference`, `colm2024_conference_arxiv`, `colm2024_arxiv`.
+      - '\\usepackage(?:\[[^\]]*\])?\s*\{[^}]*\bcolm\d{4}(?:_conference)?(?:_arxiv)?\b'
+      - '\\usepackage(?:\[[^\]]*\])?\s*\{[^}]*\bcolm\d{4}_conference_arxiv\b'
+    year_regex: 'colm(\d{4})'
+
+  aistats:
+    patterns:
+      - '\\usepackage(?:\[[^\]]*\])?\s*\{[^}]*\baistats\d{4}(?:_arxiv)?\b'
+      - '\\usepackage(?:\[[^\]]*\])?\s*\{[^}]*\barxiv_aistats\d{4}\b'
+    year_regex: 'aistats(\d{4})'
+
+  aaai:
+    patterns:
+      # 2-digit year (aaai21/22/...) plus 4-digit variants + _arxiv suffix.
+      - '\\usepackage(?:\[[^\]]*\])?\s*\{[^}]*\baaai\d{2,4}(?:_arxiv)?\b'
+      # Bare "aaai" (no year) — less specific, still distinctive
+      - '\\usepackage(?:\[[^\]]*\])?\s*\{[^}]*\baaai\b'
+    year_regex: 'aaai(\d{2,4})'
+
+  # ============================================================================
+  # Computer Vision venues
+  # ============================================================================
+
+  cvpr:
+    patterns:
+      - '\\usepackage(?:\[[^\]]*\])?\s*\{[^}]*\bcvpr(?:\d{4})?(?:_\d{4})?\b'
+      - '\\documentclass(?:\[[^\]]*\])?\s*\{[^}]*\bcvpr\b'
+    year_regex: 'cvpr_?(\d{4})'
+
+  iccv:
+    patterns:
+      - '\\usepackage(?:\[[^\]]*\])?\s*\{[^}]*\biccv(?:\d{4})?\b'
+      - '\\documentclass(?:\[[^\]]*\])?\s*\{[^}]*\biccv\b'
+    year_regex: 'iccv(\d{4})'
+
+  eccv:
+    patterns:
+      # \usepackage{eccv} variants (modern submission style)
+      - '\\usepackage(?:\[[^\]]*\])?\s*\{[^}]*(?<![a-zA-Z])eccv(?:\d{4}|_template|_styles?)?(?![a-zA-Z])'
+      # \documentclass{eccvNNNNsubmission}
+      - '\\documentclass(?:\[[^\]]*\])?\s*\{[^}]*\beccv\d{4}submission\b'
+      # ECCV submission template macros — present in nearly every ECCV
+      # paper (camera-ready or under-review), independent of LNCS class.
+      # Spot-checked: ~90% of ECCV accepts ship with these even though
+      # they use `\documentclass{llncs}`, while non-ECCV LNCS papers
+      # (MICCAI, ACML, ECML, ICANN, ICPR, ...) lack them entirely.
+      - '\\def\\ECCVSubNumber'
+      - 'ConferenceHeader[^}]*\bECCV\b'
+      - '\\titlerunning\{ECCV[-\s]'
+    year_regex: '(?:eccv_?|ECCV[-\s])(\d{2,4})'
+
+  # ============================================================================
+  # NLP venues (share acl.sty across ACL/EMNLP/NAACL/EACL)
+  # NOTE: the bare \usepackage{acl} pattern matches ALL *ACL venues — use
+  # paperlists pl_venue for disambiguation when available.
+  # ============================================================================
+
+  acl:
+    patterns:
+      # Case-insensitive: matches `acl2023`, `ACL2023`, `Acl2023`, `acl` bare.
+      - '(?i)\\usepackage(?:\[[^\]]*\])?\s*\{[^}]*\bacl(?:\d{4})?\b'
+    year_regex: '[Aa][Cc][Ll](\d{4})'
+
+  emnlp:
+    patterns:
+      - '(?i)\\usepackage(?:\[[^\]]*\])?\s*\{[^}]*\bemnlp\d{4}\b'
+    year_regex: '[Ee][Mm][Nn][Ll][Pp](\d{4})'
+
+  naacl:
+    patterns:
+      - '(?i)\\usepackage(?:\[[^\]]*\])?\s*\{[^}]*\bnaacl\d{4}?\b'
+    year_regex: '[Nn][Aa][Aa][Cc][Ll](\d{4})'
+
+  # ============================================================================
+  # Robotics
+  # ============================================================================
+
+  corl:
+    patterns:
+      # corl_YYYY (official) and corlYYYY (author rename) — tolerates paths & commas.
+      - '\\usepackage(?:\[[^\]]*\])?\s*\{[^}]*\bcorl_?\d{4}\b'
+    year_regex: 'corl_?(\d{4})'
+
+# arXiv categories to download
+arxiv_categories:
+  - cs.LG
+  - cs.AI
+  - cs.CL
+  - cs.CV
+  - stat.ML

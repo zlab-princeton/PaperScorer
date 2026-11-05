@@ -1,0 +1,50 @@
+[project]
+name = "paperprep"
+version = "0.1.0"
+description = "Batch LaTeX/PDF -> ShareGPT pipeline (compile -> MinerU -> normalize -> filter -> export)."
+requires-python = ">=3.11"
+dependencies = [
+    "pymupdf==1.26.7",     # core/pdf.py — redaction + page rasterization
+    "pyyaml==6.0.3",       # paperprep/stages/compile.py — templates.yaml load
+    "submitit>=1.5",       # paperprep/submit.py — SLURM array submission
+    "tqdm==4.67.1",        # paperprep/progress.py + paper-loop bars
+]
+
+[project.optional-dependencies]
+# MinerU is heavy (vllm/torch/xformers). Optional so callers running paperprep
+# only as a coordinator (e.g. supplying their own MinerU output) don't pay the
+# ~17 GB venv cost.
+gpu = [
+    "mineru[core,vllm]==2.6.2",
+]
+# Flask backend for `paperprep serve`. Needs `gpu` too (for mineru-vllm-server)
+# but is split so users not running serve don't pay the dep.
+serve = [
+    "flask==3.0.3",
+]
+
+[project.scripts]
+paperprep = "paper_anonymizer.paperprep.cli:main"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/paper_anonymizer"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+# Default `pytest` (no -m) runs tests/unit/ only. The integration tests under
+# tests/integration/ require GPU + ~20-40 min wall and are opt-in via marker.
+addopts = "-m 'not gpu and not slow'"
+markers = [
+    "gpu: needs CUDA GPU + MinerU installed (`uv sync --extra gpu`). Run with `pytest -m gpu`",
+    "slow: includes everything from `gpu` plus 3 latex_dir compiles (~40 min total). Run with `pytest -m slow`",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=8.0",
+    "pytest-xdist>=3.0",
+]

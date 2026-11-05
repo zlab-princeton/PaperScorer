@@ -1,0 +1,22 @@
+# orchestrator runtime artifacts
+# (.gitignore treats `#` as a comment only at the start of a line, so
+# trailing comments after a pattern get parsed as part of the pattern.)
+
+# per-user config written by `paperscorer setup` (cache dirs, model, gpu)
+.paperscorer.toml
+.paperlens.toml
+# per-run serve job dirs (configs, verdicts, logs)
+.paperlens_runs/
+# reviewing server's per-upload working tree
+paperlensreview_work/
+run_e2e.log
+*.log
+
+# python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+build/
+dist/
+.pytest_cache/
